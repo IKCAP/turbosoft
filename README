@@ -10,7 +10,6 @@ Requirements
 1. Java JDK 1.6+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 2. Maven 2/3 (http://maven.apache.org/)
 3. Tomcat 6+ (http://tomcat.apache.org/)
-4. wings-ontapi (Install from https://github.com/varunratnakar/wings)
 
 Installation
 -------------
