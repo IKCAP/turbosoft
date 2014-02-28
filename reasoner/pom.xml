@@ -28,6 +28,14 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 
+  	<repositories>
+    	<!-- Local Wings Repository (for wings-ontapi & dependencies) -->
+    	<repository>
+      		<id>wings</id>
+      		<url>http://skc.isi.edu:8765/archiva/repository/internal</url>
+    	</repository>
+  	</repositories>
+
 	<build>
 		<resources>
 			<resource>
