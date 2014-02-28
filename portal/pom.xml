@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.earthcube.geosoft</groupId>
+	<artifactId>turbosoft-portal</artifactId>
+	<name>TurboSoft Portal</name>
+	<packaging>war</packaging>
+	<description>TurboSoft portal web application</description>
+
+	<parent>
+		<groupId>org.earthcube.geosoft</groupId>
+		<artifactId>turbosoft-core</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<relativePath>../core/pom.xml</relativePath>
+	</parent>
+
+	<properties>
+		<servlet-api.version>2.5</servlet-api.version>
+		<jaxrs.version>1.1.1</jaxrs.version>
+      <commons-fileupload.version>1.3</commons-fileupload.version>
+	</properties>
+
+	<dependencies>
+		<!-- TurboSoft Planner -->
+		<dependency>
+			<groupId>org.earthcube.geosoft</groupId>
+			<artifactId>turbosoft-reasoner</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+      <!-- Apache Commons FileUpload -->
+      <dependency>
+         <groupId>commons-fileupload</groupId>
+         <artifactId>commons-fileupload</artifactId>
+         <version>${commons-fileupload.version}</version>
+      </dependency>
+            
+	   <!-- JAX-RS -->
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+			<version>${jaxrs.version}</version>
+		</dependency>
+	            
+		<!-- Servlet (only for compilation, not in WAR file) -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${servlet-api.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- tomcat:run-war configuration -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<port>9090</port>
+					<path>/turbosoft-portal</path>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- ant plugin to download extjs, plupload libraries -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+            			<id>generate-sources</id>
+            			<phase>generate-sources</phase>
+						<configuration>
+							<target>
+								<ant antfile="build.xml" target="download"/>
+							</target>
+						</configuration>
+						<goals><goal>run</goal></goals>
+          			</execution>
+					<execution>
+            			<id>clean</id>
+            			<phase>clean</phase>
+						<configuration>
+							<target>
+								<ant antfile="build.xml" target="clean"/>
+							</target>
+						</configuration>
+						<goals><goal>run</goal></goals>
+          			</execution>
+        		</executions>
+      		</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-antrun-plugin
+										</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

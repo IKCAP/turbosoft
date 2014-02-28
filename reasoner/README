@@ -1,0 +1,18 @@
+Installation 
+------------
+$ mvn install
+
+This will produce:
+
+	- 1) "turbosoft-reasoner-<version>.jar" file in target/ directory. 
+
+Testing
+-------
+$ mvn test
+
+This will run 2 tests on 2 domains. 
+	- Collection Test : Template Validation and Seed Generation
+	- Simple Test : Template Validation and Seed Generation
+
+
+
