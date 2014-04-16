@@ -16,6 +16,7 @@ import org.earthcube.geosoft.software.classes.SWProperty;
 import org.earthcube.geosoft.software.classes.SWPropertyValue;
 import org.earthcube.geosoft.software.classes.Software;
 import org.earthcube.geosoft.software.classes.SoftwareRole;
+import org.earthcube.geosoft.software.classes.SoftwareType;
 import org.earthcube.geosoft.software.classes.sn.SNAssumption;
 import org.earthcube.geosoft.software.classes.sn.SNObject;
 import org.earthcube.geosoft.software.classes.sn.SNOperator;
@@ -159,13 +160,21 @@ public class SoftwareKB implements SoftwareAPI {
   }*/
   
   @Override
-  public ArrayList<String> getSoftwareTypes() {
-    ArrayList<String> typeIds = new ArrayList<String>();
-    KBObject softwarecls = this.kb.getConcept(this.ontns + "Software");
-    for(KBObject obj : this.kb.getSubClasses(softwarecls, true)) {
-      typeIds.add(obj.getID());
+  public SoftwareType getSoftwareTypesTree() {
+    return this.getSoftwareType(this.ontns + "Software", true);
+  }
+  
+  @Override
+  public SoftwareType getSoftwareType(String id, boolean getSubtypes) {
+    SoftwareType type = new SoftwareType(id);
+    KBObject cls = this.kb.getConcept(id);
+    type.setAnnotation(this.kb.getComment(cls));
+    if(getSubtypes) {
+      for(KBObject obj : this.kb.getSubClasses(cls, true)) {
+        type.addSubtype(this.getSoftwareType(obj.getID(), getSubtypes));
+      }
     }
-    return typeIds;
+    return type;
   }
   
   @Override
@@ -410,6 +419,46 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public boolean renameSoftware(String oldid, String newid) {
     KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
+    return true;
+  }
+  
+  @Override
+  public boolean addSoftwareType(String typeid, String parentid) {
+    KBObject pcls = this.kb.getConcept(parentid);
+    if(pcls == null)
+      return false;
+    KBObject cls = this.writerkb.createClass(typeid, parentid);
+    if(cls == null)
+      return false;
+    return true;
+  }
+  
+  @Override
+  /**
+   * This just updates the software type annotation for now
+   */
+  public boolean updateSoftwareType(SoftwareType type) {
+    KBObject cls = this.kb.getConcept(type.getId());
+    this.writerkb.setComment(cls, type.getAnnotation());
+    return true;
+  }
+  
+  @Override
+  public boolean removeSoftwareType(String typeid) {
+    KBObject cls = this.kb.getConcept(typeid);
+    // Remove all softwares
+    ArrayList<KBObject> softwares = this.kb.getInstancesOfClass(cls, true);
+    for (KBObject sw : softwares) {
+      this.removeSoftware(sw.getID());
+    }
+    // Remove all subclasses (recursive call)
+    ArrayList<KBObject> subclses = this.kb.getSubClasses(cls, true);
+    for (KBObject subcls : subclses) {
+      if (!subcls.isNothing())
+        this.removeSoftwareType(subcls.getID());
+    }
+    // Finally remove the class itself
+    KBUtils.removeAllTriplesWith(this.writerkb, typeid, false);
     return true;
   }
 

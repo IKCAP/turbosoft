@@ -28,6 +28,7 @@ import org.earthcube.geosoft.portal.classes.importer.api.ImportAPI;
 import org.earthcube.geosoft.software.SoftwareFactory;
 import org.earthcube.geosoft.software.api.SoftwareAPI;
 import org.earthcube.geosoft.software.classes.Software;
+import org.earthcube.geosoft.software.classes.SoftwareType;
 
 @SuppressWarnings("unused")
 public class SoftwareController {
@@ -50,7 +51,7 @@ public class SoftwareController {
     this.guid = guid;
     this.config = config;
     this.isSandboxed = config.isSandboxed();
-    json = JsonHandler.createGson();
+    json = JsonHandler.createPrettyGson();
 
     this.props = config.getProperties();
     api = SoftwareFactory.getAPI(props);
@@ -72,7 +73,7 @@ public class SoftwareController {
     // Get Hierarchy
     try {
       String list = json.toJson(api.getSoftwares(false));
-      String software_types = json.toJson(api.getSoftwareTypes());
+      String software_types = json.toJson(api.getSoftwareTypesTree());
       String data_types = json.toJson(dapi.getAllDatatypeIds());
       String props = json.toJson(api.getAllSoftwareProperties(true));
       
@@ -125,6 +126,14 @@ public class SoftwareController {
       api.end();
     }
   }
+  
+  public String getSoftwareTypeJSON(String typeid) {
+    try {
+      return json.toJson(api.getSoftwareType(typeid, false));
+    } finally {
+      api.end();
+    }
+  }
 
   public String getInferredSoftware(String softwareid, String software_json) {
     if (this.api == null)
@@ -152,6 +161,21 @@ public class SoftwareController {
     try {
       Software software = json.fromJson(software_json, Software.class);
       return this.api.updateSoftware(software) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+  
+  public synchronized boolean saveSoftwareTypeJSON(String typeid, String type_json) {
+    if (this.api == null)
+      return false;
+
+    try {
+      SoftwareType stype = json.fromJson(type_json, SoftwareType.class);
+      return this.api.updateSoftwareType(stype) && this.api.save();
     } catch (Exception e) {
       e.printStackTrace();
       return false;
@@ -204,4 +228,25 @@ public class SoftwareController {
     }
   }
 
+  public synchronized boolean addSoftwareType(String typeid, String parentid) {
+    try {
+      return this.api.addSoftwareType(typeid, parentid) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+  
+  public synchronized boolean delSoftwareType(String typeid) {
+    try {
+      return this.api.removeSoftwareType(typeid) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
 }

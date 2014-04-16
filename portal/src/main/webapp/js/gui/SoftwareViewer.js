@@ -66,7 +66,7 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         border: false,
         autoScroll: true,
         hideHeaders: true,
-        rootVisible: false,
+        rootVisible: true,
         iconCls: iconCls,
         bodyCls: 'x-docked-noborder-top',
         title: title,
@@ -77,16 +77,43 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
 };
 
 SoftwareViewer.prototype.getSoftwareTree = function(list) {
-	var root =  {
+	/*var root =  {
         text: "Software",
         id: "Software",
         leaf: false,
         iconCls: 'ctypeIcon',
         expanded: true,
         children: []
-    };
+    };*/
+	
+	var root = null;
 	var nodes = {};
-	for (var i = 0; i < this.store.software_types.length; i++) {
+	var parent = {};
+
+	var queue = [this.store.software_types];
+	while(queue.length) {
+		var type = queue.pop();
+		var typeid = type.id;
+		nodes[typeid] = {
+			id: typeid,
+			text: getLocalName(typeid),
+			leaf: false,
+			iconCls: 'dtypeIcon',
+			expanded: true,
+			children: []
+		};
+		if(!root)
+			root = nodes[typeid];
+		
+		for(var i=0; i<type.subtypes.length; i++) {
+			var stype = type.subtypes[i];
+			parent[stype.id] = nodes[typeid];
+			queue.push(stype);
+		}
+		if(parent[typeid])
+			parent[typeid].children.push(nodes[typeid]);
+	}
+	/*for (var i = 0; i < this.store.software_types.length; i++) {
 		var typeid = this.store.software_types[i];
 		nodes[typeid] = {
 			id: typeid,
@@ -97,7 +124,7 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 			children: []
 		};
 		root.children.push(nodes[typeid]);
-	}
+	}*/
 	
     for (var i = 0; i < list.length; i++) {
     	var software = list[i];
@@ -162,6 +189,62 @@ SoftwareViewer.prototype.addSoftware = function() {
                     		iconCls: 'compIcon'
                     	});
                         This.treePanel.getStore().sort('text', 'ASC');
+                    } else {
+                        _console(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(cTree.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    }, window, false);
+};
+
+SoftwareViewer.prototype.addSoftwareType = function() {
+    var This = this;
+    var cTree = this.treePanel;
+    
+    var nodes = cTree.getSelectionModel().getSelection();
+    if (!nodes || !nodes.length || nodes[0].data.leaf) {
+    	Ext.MessageBox.show({
+            icon: Ext.MessageBox.ERROR,
+            buttons: Ext.MessageBox.OK,
+            msg: "Select an existing Software Type to add this under"
+        });
+        return;
+    }
+    var pNode = nodes[0];
+    
+    Ext.Msg.prompt("Add Software Type", "Enter name for the new Software Type:", function(btn, text) {
+        if (btn == 'ok' && text) {
+            text = getRDFID(text);
+            var typeid = This.ns[''] + text;
+            var enode = cTree.getStore().getNodeById(typeid);
+            if (enode) {
+                showError(text + ' already exists');
+                return;
+            }
+            var url = This.op_url + '/addSoftwareType';
+            Ext.get(cTree.getId()).mask("Creating..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    typeid: typeid,
+                    parentid: pNode.data.id
+                },
+                success: function(response) {
+                    Ext.get(cTree.getId()).unmask();
+                    if (response.responseText == "OK") {
+                    	pNode.appendChild({
+                    		id: typeid,
+                    		text: getLocalName(typeid),
+                    		leaf: false,
+                    		iconCls: 'dtypeIcon',
+                    		children: []
+                    	});
+                        cTree.getStore().sort('text', 'ASC');
                     } else {
                         _console(response.responseText);
                     }
@@ -251,7 +334,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     var This = this;
     
     var savebtn = new Ext.Button({
-        text: 'Save Software',
+        text: 'Save',
         iconCls: 'saveIcon',
         disabled: true,
         handler: function() {
@@ -348,6 +431,91 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     tab.add(mainPanel);
 };
 
+SoftwareViewer.prototype.openSoftwareTypeEditor = function(args) {
+    var tab = args[0];
+    var id = args[1];
+    var typeStore = args[2];
+    var mainPanel;
+    var This = this;
+    
+    var savebtn = new Ext.Button({
+        text: 'Save',
+        iconCls: 'saveIcon',
+        disabled: true,
+        handler: function() {
+        	var form = tab.down('form');
+        	var annotation = form.getForm().findField('annotation').getValue();
+        	var stype = {id: id, annotation: annotation, subtypes: []};
+        	Ext.get(This.tabPanel.getId()).mask("Saving..");
+        	Ext.Ajax.request({
+                url: This.op_url + '/saveSoftwareTypeJSON',
+                params: {
+                    typeid: id,
+                    json: Ext.encode(stype)
+                },
+                success: function(response) {
+                    Ext.get(This.tabPanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+						// Reset dirty bit
+						form.getForm().getFields().each(function(field) {
+							field.resetOriginalValue();
+						});
+                        savebtn.setDisabled(true);
+                        tab.setTitle(tab.title.replace(/^\*/, ''));
+                    } else {
+                        Ext.MessageBox.show({
+                            icon: Ext.MessageBox.ERROR,
+                            buttons: Ext.MessageBox.OK,
+                            msg: "Could not save:<br/>" + response.responseText.replace(/\n/, '<br/>')
+                        });
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(This.tabPanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    });
+    
+	tab.form = {
+		xtype : 'form',
+		frame : true,
+		bodyStyle : 'padding:5px',
+		margin : 5,
+		autoScroll : true,
+		items : [ {
+			xtype : 'textarea',
+			name : 'annotation',
+			fieldLabel : 'Description',
+			value : typeStore.annotation,
+			flex: 1,
+			anchor: '100%',
+			listeners: {
+				dirtychange: function(item, dirty, opts) {
+					if(dirty) {
+						savebtn.setDisabled(false);
+						tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+					}
+				}
+			}
+		} ]
+	};
+
+    var editable = true;
+    var mainPanelItems = [ tab.form ];
+    
+    var mainPanel = new Ext.Panel({
+        region: 'center',
+        border: false,
+        tbar: editable ? [ savebtn ] : null,
+        layout: 'fit',
+        //tbar: tbar,
+        bodyStyle: editable ? '' : 'background-color:#ddd',
+        items: mainPanelItems
+    });
+    tab.add(mainPanel);
+};
 
 SoftwareViewer.prototype.createSoftwareFromForm = function (form, softwareid, classId) {
 	var software = {id: softwareid, classId: classId, propertyValues: [], 
@@ -871,8 +1039,10 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			}
 			else if(prop.range == this.ns['xsd'] + "date")
 				item.xtype = 'datefield';
-			else if(prop.label && prop.label.match(/descri/i))
+			else if(prop.label && prop.label.match(/descri/i)) {
 				item.xtype = 'textareafield';
+				item.rows = 8;
+			}
 			else 
 				item.xtype = 'textfield';
 			
@@ -1929,8 +2099,8 @@ SoftwareViewer.prototype.openNewIconTab = function(tabname, iconCls) {
 SoftwareViewer.prototype.initSoftwareTreePanelEvents = function() {
     var This = this;
     This.treePanel.on("itemclick", function(view, rec, item, ind, event) {
-        if(!rec.data.leaf)
-        	return false;
+        /*if(!rec.data.leaf)
+        	return false;*/
         var id = rec.data.id;
         var path = getTreePath(rec, 'text');
         var tabName = getLocalName(id);
@@ -1947,13 +2117,21 @@ SoftwareViewer.prototype.initSoftwareTreePanelEvents = function() {
 
         // Fetch Store via Ajax
         var url = This.op_url + '/getSoftwareJSON?softwareid=' + escape(id);
+        var guifn = This.openSoftwareEditor;
+        var icon = 'compIcon';
+        
+        if(!rec.data.leaf) {
+        	url = This.op_url + '/getSoftwareTypeJSON?typeid=' + escape(id);
+        	guifn = This.openSoftwareTypeEditor;
+        	icon = 'dtypeIcon';
+        }
 
-        var tab = This.openNewIconTab(tabName, 'compIcon');
+        var tab = This.openNewIconTab(tabName, icon);
         Ext.apply(tab, {
             path: path,
-            guifn: This.openSoftwareEditor,
+            guifn: guifn,
             args: [tab, id, {}]
-            });
+        });
         This.tabPanel.setActiveTab(tab);
         
         Ext.apply(tab, {
@@ -2004,7 +2182,7 @@ SoftwareViewer.prototype.initialize = function() {
                 url: this.op_url + '/intro'
             }
         }]
-        });
+    });
 
     this.treePanel = this.getSoftwareListTree();
     
@@ -2017,15 +2195,21 @@ SoftwareViewer.prototype.initialize = function() {
             if (!nodes || !nodes.length)
                 return;
             var node = nodes[0];
+            var opurl = This.op_url + '/delSoftware';
+            var params = {};
+            if (!node.data.leaf) {
+                opurl += "Type";
+                params['typeid'] = node.data.id;
+            }
+            else {
+            	params['softwareid'] = node.data.id;
+            }
             Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(node.id), function(yesno) {
                 if (yesno == "yes") {
-                    var url = This.op_url + '/delSoftware';
                     Ext.get(This.treePanel.getId()).mask("Deleting..");
                     Ext.Ajax.request({
-                        url: url,
-                        params: {
-                            softwareid: node.data.id
-                        },
+                        url: opurl,
+                        params: params,
                         success: function(response) {
                             Ext.get(This.treePanel.getId()).unmask();
                             if (response.responseText == "OK") {
@@ -2057,6 +2241,14 @@ SoftwareViewer.prototype.initialize = function() {
     	    	iconCls: 'addIcon',
     	    	handler: function() {
                     This.addSoftware();
+                }
+    	    },
+    	    {
+    	    	itemId: 'createtypebutton',
+    	    	text: 'Add Software Type',
+    	    	iconCls: 'dtypeIcon',
+    	    	handler: function() {
+                    This.addSoftwareType();
                 }
     	    },
     	    {

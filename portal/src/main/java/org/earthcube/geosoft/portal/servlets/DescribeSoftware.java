@@ -68,7 +68,10 @@ public class DescribeSoftware extends HttpServlet {
 			return;
 		} else if (op.equals("getSoftwareJSON")) {
 			out.print(mc.getSoftwareJSON(softwareid));
-		} 
+		} else if (op.equals("getSoftwareTypeJSON")) {
+		  String typeid = request.getParameter("typeid");
+      out.print(mc.getSoftwareTypeJSON(typeid));
+    }
 		
 		synchronized(WriteLock.Lock) {
 			if (op.equals("saveSoftwareJSON")) {
@@ -76,6 +79,12 @@ public class DescribeSoftware extends HttpServlet {
 				if (!config.isSandboxed())
 					if (mc.saveSoftwareJSON(softwareid, software_json))
 						out.print("OK");
+			} else if (op.equals("saveSoftwareTypeJSON")) {
+			  String typeid = request.getParameter("typeid");
+        String type_json = request.getParameter("json");
+        if (!config.isSandboxed())
+          if (mc.saveSoftwareTypeJSON(typeid, type_json))
+            out.print("OK");
 			} else if (op.equals("getInferredSoftware")) {
         String software_json = request.getParameter("software_json");
         if (!config.isSandboxed())
@@ -85,6 +94,12 @@ public class DescribeSoftware extends HttpServlet {
 				if (!config.isSandboxed())
 					if (mc.addSoftware(softwareid, software_typeid))
 						out.print("OK");
+      } else if (op.equals("addSoftwareType")) {
+        String typeid = request.getParameter("typeid");
+        String parentid = request.getParameter("parentid");
+        if (!config.isSandboxed())
+          if (mc.addSoftwareType(typeid, parentid))
+            out.print("OK");
 			} else if (op.equals("importSoftware")) {
 			  String repo_softwareid = request.getParameter("repo_softwareid");
 			  String repo_id = request.getParameter("repo_id");
@@ -95,6 +110,11 @@ public class DescribeSoftware extends HttpServlet {
 				if (!config.isSandboxed())
 					if (mc.delSoftware(softwareid))
 						out.print("OK");
+			} else if (op.equals("delSoftwareType")) {
+        String typeid = request.getParameter("typeid");
+        if (!config.isSandboxed())
+          if (mc.delSoftwareType(typeid))
+            out.print("OK");
 			}
 		}
 	}

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.earthcube.geosoft.software.api.SoftwareAPI;
 import org.earthcube.geosoft.software.classes.SWProperty;
 import org.earthcube.geosoft.software.classes.Software;
+import org.earthcube.geosoft.software.classes.SoftwareType;
 import org.earthcube.geosoft.software.classes.sn.SNAssumption;
 import org.earthcube.geosoft.software.classes.sn.SNObject;
 import org.earthcube.geosoft.software.classes.sn.SNOperator;
@@ -18,7 +19,9 @@ public interface SoftwareAPI {
    * General Software Metadata Part
    */
   // Query
-  ArrayList<String> getSoftwareTypes();
+  SoftwareType getSoftwareTypesTree();
+  
+  SoftwareType getSoftwareType(String id, boolean getSubtypes);
   
   ArrayList<Software> getSoftwares(boolean details);
 
@@ -34,6 +37,12 @@ public interface SoftwareAPI {
   boolean renameSoftware(String oldid, String newid);
 
   boolean removeSoftware(String softwareid);
+  
+  boolean addSoftwareType(String typeid, String parentid);
+  
+  boolean updateSoftwareType(SoftwareType type);
+  
+  boolean removeSoftwareType(String typeid);
   
   /*
    * Standard Names Part
