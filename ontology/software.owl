@@ -104,6 +104,7 @@
         <rdfs:comment>{ ui: {position:3, show_if:{}} }</rdfs:comment>
         <rdfs:range rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ProgrammingLanguages"/>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsObjectProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWObjectProperty"/>
     </owl:ObjectProperty>
     
 
@@ -177,6 +178,15 @@
     <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsObjectProperty">
         <rdfs:label>Technical Specs</rdfs:label>
         <rdfs:comment>{ ui: {position:3} }</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWObjectProperty -->
+
+    <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWObjectProperty">
+        <rdfs:label>Technical Specs</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
     </owl:ObjectProperty>
     
 
@@ -530,6 +540,16 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#InternalVariable -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#InternalVariable">
+        <rdfs:domain rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ValueHolder"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#hasExtraInformation"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#IsCMTCompliant -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#IsCMTCompliant">
@@ -666,6 +686,16 @@
         <rdfs:comment>{ ui: {position:5, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ExtraSoftwareProperty"/>
         <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Note -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Note">
+        <rdfs:domain rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ValueHolder"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#hasExtraInformation"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
 
@@ -841,6 +871,16 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RuntimeDependencyDescription -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RuntimeDependencyDescription">
+        <rdfs:label>Describe Runtime Dependencies</rdfs:label>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareAvailability -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareAvailability">
@@ -880,6 +920,7 @@
         <rdfs:label>Source web address</rdfs:label>
         <rdfs:comment>{ ui: {position:14, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
     
@@ -920,6 +961,15 @@
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsProperty">
         <rdfs:label>Technical Specs</rdfs:label>
         <rdfs:comment>{ ui: {position:3} }</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty">
+        <rdfs:label>Technical Specs</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
     </owl:DatatypeProperty>
     
 
@@ -1005,6 +1055,12 @@
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#hasProvenance"/>
         <rdfs:range rdf:resource="&xsd;string"/>
     </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#hasExtraInformation -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#hasExtraInformation"/>
     
 
 

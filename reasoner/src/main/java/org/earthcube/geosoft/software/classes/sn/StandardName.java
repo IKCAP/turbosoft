@@ -10,6 +10,8 @@ public class StandardName extends URIEntity {
   private String objectId;
   private String quantityId;
   private ArrayList<String> operatorIds;
+  private String internalVariable;
+  private String note;
   
   public StandardName(String id) {
     super(id);
@@ -38,6 +40,22 @@ public class StandardName extends URIEntity {
 
   public void addOperatorId(String operatorId) {
     this.operatorIds.add(operatorId);
+  }
+
+  public String getInternalVariable() {
+    return internalVariable;
+  }
+
+  public void setInternalVariable(String internalVariable) {
+    this.internalVariable = internalVariable;
+  }
+
+  public String getNote() {
+    return note;
+  }
+
+  public void setNote(String note) {
+    this.note = note;
   }
 
 }

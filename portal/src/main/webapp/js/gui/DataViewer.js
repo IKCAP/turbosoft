@@ -1102,6 +1102,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
         width: '100%',
         border: true,
         autoScroll: true,
+        rootVisible: false,
         title: 'Data',
         iconCls: 'dataIcon',
         containerScroll: true,

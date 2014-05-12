@@ -222,6 +222,9 @@ public class SoftwareKB implements SoftwareAPI {
     Software software = new Software(softwareobj.getID(), softwarecls.getID());
     if(details) {
       
+      KBObject noteProp = this.dataPropMap.get("Note");
+      KBObject ivarProp = this.dataPropMap.get("InternalVariable");
+      
       // Get software property values
       for(KBObject holder : kb.getPropertyValues(softwareobj, holderprop)) {
         ArrayList<SWPropertyValue> mpvs = new ArrayList<SWPropertyValue>();
@@ -233,11 +236,43 @@ public class SoftwareKB implements SoftwareAPI {
           String label = this.kb.getLabel(t.getPredicate());
           SWProperty prop = new SWProperty(t.getPredicate().getID(), label);
           KBObject obj = t.getObject();
-          SWPropertyValue pv = new SWPropertyValue(prop.getId(), obj.isLiteral() ? obj.getValue() : obj.getID());
-          if(this.provProps.containsKey(prop.getId()))
-            provenance.add(pv);
+          if(t.getPredicate().getName().equals("hasStandardName")) {
+            // Get Standard Name
+            StandardName sname = this.getStandardName(obj);
+            // Get Extra information 
+            KBObject noteobj = this.kb.getPropertyValue(holder, noteProp);
+            KBObject ivarobj = this.kb.getPropertyValue(holder, ivarProp);
+            if(noteobj != null && noteobj.getValue() != null)
+              sname.setNote(noteobj.getValue().toString());
+            if(ivarobj != null && ivarobj.getValue() != null)
+              sname.setInternalVariable(ivarobj.getValue().toString());
+            
+            this.setProvenance(obj, sname);
+            software.addStandardName(sname);
+          }
+          else if(t.getPredicate().getName().equals("hasAssumption")) {
+            // Get Assumption
+            SNAssumption ass = this.getAssumption(obj);
+            // Get Extra information 
+            KBObject noteobj = this.kb.getDatatypePropertyValue(holder, noteProp);
+            if(noteobj != null && noteobj.getValue() != null)
+              ass.setNote(noteobj.getValue().toString());
+            
+            this.setProvenance(obj, ass);
+            software.addAssumption(ass);
+          }
+          else if(t.getPredicate().getName().equals("Note")) {
+            continue;
+          }
+          else if(t.getPredicate().getName().equals("InternalVariable")) {
+            continue;
+          }
           else {
-            mpvs.add(pv);
+            SWPropertyValue pv = new SWPropertyValue(prop.getId(), obj.isLiteral() ? obj.getValue() : obj.getID());
+            if(this.provProps.containsKey(prop.getId()))
+              provenance.add(pv);
+            else
+              mpvs.add(pv);
           }
         }
         for(SWPropertyValue mpv : mpvs) {
@@ -254,47 +289,6 @@ public class SoftwareKB implements SoftwareAPI {
       ArrayList<KBObject> outobjs = this.getSoftwareOutputs(softwareobj);
       for (KBObject outobj : outobjs) {
         software.addOutput(this.getRole(outobj));
-      }
-      
-      // Get Assumptions
-      KBObject asProp = kb.getProperty(this.ontns + "hasAssumption");
-      for(KBObject assobj: kb.getPropertyValues(softwareobj, asProp)) {
-        KBObject catobj = kb.getClassOfInstance(assobj);
-        SNAssumption ass = new SNAssumption(assobj.getID());
-        ass.setLabel(this.kb.getLabel(assobj));
-        if(catobj != null)
-          ass.setCategoryId(catobj.getID());
-        
-        this.setProvenance(assobj, ass);
-        software.addAssumption(ass);
-      }
-      
-      // Get StandardNames
-      KBObject snProp = kb.getProperty(this.ontns + "hasStandardName");
-      KBObject objProp = kb.getProperty(this.ontns + "hasObject");
-      KBObject qProp = kb.getProperty(this.ontns + "hasQuantity");
-      KBObject opProp = kb.getProperty(this.ontns + "hasOperator");
-      KBObject opProp2 = kb.getProperty(this.ontns + "hasSecondOperator");
-      
-      for(KBObject snobj: kb.getPropertyValues(softwareobj, snProp)) {
-        StandardName sname = new StandardName(snobj.getID());
-        sname.setLabel(this.kb.getLabel(snobj));
-        
-        KBObject obj = kb.getPropertyValue(snobj, objProp);
-        if(obj != null)
-          sname.setObjectId(obj.getID());
-        KBObject qobj = kb.getPropertyValue(snobj, qProp);
-        if(qobj != null)
-          sname.setQuantityId(qobj.getID());
-        KBObject opobj = kb.getPropertyValue(snobj, opProp);
-        if(opobj != null)
-          sname.addOperatorId(opobj.getID());
-        KBObject opobj2 = kb.getPropertyValue(snobj, opProp2);
-        if(opobj2 != null)
-          sname.addOperatorId(opobj2.getID());
-        
-        this.setProvenance(snobj, sname);
-        software.addStandardName(sname);
       }
     }
     return software;
@@ -382,6 +376,9 @@ public class SoftwareKB implements SoftwareAPI {
       this.writerkb.addTriple(mobj, outProp, roleobj);
     }
 
+    KBObject noteProp = this.dataPropMap.get("Note");
+    KBObject ivarProp = this.dataPropMap.get("InternalVariable");
+    
     // Store Assumptions
     KBObject asProp = kb.getProperty(this.ontns + "hasAssumption");
     for(SNAssumption assumption: software.getAssumptions()) {
@@ -389,15 +386,31 @@ public class SoftwareKB implements SoftwareAPI {
       if(asobj == null) {
         asobj = this.createAssumption(assumption, software.getLabels());
       }
-      if(asobj != null)
-        this.writerkb.addTriple(mobj, asProp, asobj);
+      if(asobj != null) {
+        KBObject valholder = this.writerkb.createObjectOfClass(null, holdercls);
+        this.writerkb.addPropertyValue(mobj, holderprop, valholder);
+        this.writerkb.setPropertyValue(valholder, asProp, asobj);
+        //this.writerkb.addTriple(mobj, asProp, asobj);
+        if(assumption.getNote() != null)
+          this.writerkb.setPropertyValue(valholder, noteProp, 
+              this.ontologyFactory.getDataObject(assumption.getNote().toString()));
+      }
     }
     
     // Store StandardNames
     KBObject snProp = kb.getProperty(this.ontns + "hasStandardName");
     for(StandardName sname: software.getStandardNames()) {
       KBObject snameobj = this.createStandardName(sname, software.getLabels());
-      this.writerkb.addTriple(mobj, snProp, snameobj);
+      KBObject valholder = this.writerkb.createObjectOfClass(null, holdercls);
+      this.writerkb.addPropertyValue(mobj, holderprop, valholder);
+      this.writerkb.setPropertyValue(valholder, snProp, snameobj);
+      //this.writerkb.addTriple(mobj, snProp, snameobj);
+      if(sname.getNote() != null)
+        this.writerkb.setPropertyValue(valholder, noteProp, 
+            this.ontologyFactory.getDataObject(sname.getNote().toString()));
+      if(sname.getInternalVariable() != null)
+        this.writerkb.setPropertyValue(valholder, ivarProp, 
+            this.ontologyFactory.getDataObject(sname.getInternalVariable().toString()));        
     }
     return true;
   }
@@ -410,7 +423,7 @@ public class SoftwareKB implements SoftwareAPI {
         "hasInput", "hasOutput","hasParameterName", "hasParameter", 
         "hasValueHolder", "hasProvenance", 
         "hasObject", "hasOperator", "hasSecondOperator", "hasQuantity",
-        "hasAssumption", "hasStandardName");
+        "hasAssumption", "hasStandardName", "hasExtraInformation");
     
     for(KBObject propobj : this.kb.getAllProperties()) {
       // Ignore blacklisted properties (as these are encapsulated elsewhere)
@@ -634,8 +647,41 @@ public class SoftwareKB implements SoftwareAPI {
     }
     return snames;
   }
+  
+  private StandardName getStandardName(KBObject snobj) {
+    KBObject objProp = this.objPropMap.get("hasObject");
+    KBObject qProp = this.objPropMap.get("hasQuantity");
+    KBObject opProp = this.objPropMap.get("hasOperator");
+    KBObject opProp2 = this.objPropMap.get("hasSecondOperator");
+    
+    StandardName sname = new StandardName(snobj.getID());
+    sname.setLabel(this.kb.getLabel(snobj));
+    
+    KBObject obj = kb.getPropertyValue(snobj, objProp);
+    if(obj != null)
+      sname.setObjectId(obj.getID());
+    KBObject qobj = kb.getPropertyValue(snobj, qProp);
+    if(qobj != null)
+      sname.setQuantityId(qobj.getID());
+    KBObject opobj = kb.getPropertyValue(snobj, opProp);
+    if(opobj != null)
+      sname.addOperatorId(opobj.getID());
+    KBObject opobj2 = kb.getPropertyValue(snobj, opProp2);
+    if(opobj2 != null)
+      sname.addOperatorId(opobj2.getID());
+    
+    return sname;
+  }
 
-
+  private SNAssumption getAssumption(KBObject assobj) {
+    KBObject catobj = kb.getClassOfInstance(assobj);
+    SNAssumption ass = new SNAssumption(assobj.getID());
+    ass.setLabel(this.kb.getLabel(assobj));
+    if(catobj != null)
+      ass.setCategoryId(catobj.getID());
+    return ass;
+  }
+  
   @Override
   public ArrayList<URIEntity> getAssumptionCategories() {
     ArrayList<URIEntity> categories = new ArrayList<URIEntity>();

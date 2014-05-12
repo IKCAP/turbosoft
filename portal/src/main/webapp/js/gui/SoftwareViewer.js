@@ -66,7 +66,7 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         border: false,
         autoScroll: true,
         hideHeaders: true,
-        rootVisible: true,
+        rootVisible: false,
         iconCls: iconCls,
         bodyCls: 'x-docked-noborder-top',
         title: title,
@@ -1496,7 +1496,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
         if (!Ext.ModelManager.isRegistered('Assumption'))
             Ext.define('Assumption', {
 	            extend: 'Ext.data.Model',
-	            fields: ['id', 'label', 'categoryId', 'provenance']
+	            fields: ['id', 'label', 'categoryId', 'provenance', 'note']
             });
         if (!Ext.ModelManager.isRegistered('Category'))
             Ext.define('Category', {
@@ -1568,6 +1568,12 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
 	        	renderer: function (v) {
 	        		return This.getProvenanceCreationHtml(v);
 	        	}
+	        },
+	        {
+	        	dataIndex: 'note',
+	        	header: 'Note',
+	        	flex: 1,
+	        	editor: true
 	        }];
 
         var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
@@ -1648,7 +1654,8 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
 
         var plugins = editable ? [editorPlugin] : [];
         var bodycls = editable ? '': 'inactive-grid';
-
+        bodycls += " multi-line-grid";
+        
         var tbar = null;
         if (editable) {
             tbar = [{
@@ -1831,7 +1838,8 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
         if (!Ext.ModelManager.isRegistered('StandardName'))
             Ext.define('StandardName', {
 	            extend: 'Ext.data.Model',
-	            fields: ['id', 'label', 'objectId', 'quantityId', 'operatorIds', 'provenance']
+	            fields: ['id', 'label', 'objectId', 'quantityId', 'operatorIds', 
+	                     'provenance', 'internalVariable', 'note']
             });
 
         var gridStore = new Ext.data.Store({
@@ -1930,6 +1938,18 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
 	        	renderer: function (v) {
 	        		return This.getProvenanceCreationHtml(v);
 	        	}
+	        },
+	        {
+	        	dataIndex: 'internalVariable',
+	        	header: 'Internal Variable',
+	        	flex: 1,
+	        	editor: true
+	        },
+	        {
+	        	dataIndex: 'note',
+	        	header: 'Note',
+	        	flex: 1,
+	        	editor: true
 	        }];
 
         var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
@@ -2049,6 +2069,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
 
         var plugins = editable ? [editorPlugin] : [];
         var bodycls = editable ? '': 'inactive-grid';
+        bodycls += " multi-line-grid";
 
         var tbar = null;
         if (editable) {
@@ -2370,7 +2391,7 @@ SoftwareViewer.prototype.getRenameMenuItem = function() {
                 return;
             var node = nodes[0];
             if(node.raw.readonly) {
-            	showError('Cannot rename a system datatype');
+            	showError('Cannot rename a system software type');
             	return;
             }
             This.confirmAndRename(node);
