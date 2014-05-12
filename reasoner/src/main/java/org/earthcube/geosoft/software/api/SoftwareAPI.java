@@ -34,6 +34,8 @@ public interface SoftwareAPI {
 
   boolean updateSoftware(Software software);
   
+  boolean setSoftwareType(String softwareid, String typeid);
+  
   boolean renameSoftware(String oldid, String newid);
 
   boolean removeSoftware(String softwareid);
@@ -41,6 +43,8 @@ public interface SoftwareAPI {
   boolean addSoftwareType(String typeid, String parentid);
   
   boolean updateSoftwareType(SoftwareType type);
+  
+  boolean renameSoftwareType(String oldid, String newid);
   
   boolean removeSoftwareType(String typeid);
   

@@ -71,21 +71,57 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         bodyCls: 'x-docked-noborder-top',
         title: title,
         store: treeStore,
-        url: This.op_url
+        url: This.op_url,
+        viewConfig: {
+            plugins: {
+                ptype: 'treeviewdragdrop',
+                enableDrag: true,
+                appendOnly: true
+            }
+        },
+        listeners: {
+            itemcontextmenu: {
+                fn: This.onSoftwareItemContextMenu,
+                scope: this
+            },
+        	beforeitemmove: function(node, oldParent, newParent, index, eOpts ) {
+        		var url = This.op_url + '/moveSoftware';
+        		if(!node.data.leaf) url += "Type";
+        		if(This.ignoremove == node) { 
+        			This.ignoremove = null;
+        			return true;
+        		}
+                Ext.Ajax.request({
+                    url: url,
+                    params: {
+                        id: node.data.id,
+                        parentid: newParent.data.id
+                    },
+                    success: function(response) {
+                    	var cTree = node.getOwnerTree();
+                        Ext.get(cTree.getId()).unmask();
+                        if (response.responseText == "OK") {
+                            This.ignoremove = node;
+                        	var pNode = cTree.getStore().getNodeById(newParent.data.id);
+                        	pNode.appendChild(node);
+                            cTree.getStore().sort('text', 'ASC');
+                        } else {
+                            _console(response.responseText);
+                        }
+                    },
+                    failure: function(response) {
+                        Ext.get(cTree.getId()).unmask();
+                        _console(response.responseText);
+                    }
+                });
+                return false;
+        	}
+        }
     });
     return treePanel;
 };
 
-SoftwareViewer.prototype.getSoftwareTree = function(list) {
-	/*var root =  {
-        text: "Software",
-        id: "Software",
-        leaf: false,
-        iconCls: 'ctypeIcon',
-        expanded: true,
-        children: []
-    };*/
-	
+SoftwareViewer.prototype.getSoftwareTree = function(list) {	
 	var root = null;
 	var nodes = {};
 	var parent = {};
@@ -94,11 +130,13 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 	while(queue.length) {
 		var type = queue.pop();
 		var typeid = type.id;
+	    type.readonly = (getNamespace(type.id) == this.ns['']);
 		nodes[typeid] = {
 			id: typeid,
 			text: getLocalName(typeid),
 			leaf: false,
-			iconCls: 'dtypeIcon',
+			readonly: type.readonly,
+			iconCls: type.readonly ? 'ontdtypeIcon' : 'dtypeIcon',
 			expanded: true,
 			children: []
 		};
@@ -113,18 +151,6 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 		if(parent[typeid])
 			parent[typeid].children.push(nodes[typeid]);
 	}
-	/*for (var i = 0; i < this.store.software_types.length; i++) {
-		var typeid = this.store.software_types[i];
-		nodes[typeid] = {
-			id: typeid,
-			text: getLocalName(typeid),
-			leaf: false,
-			iconCls: 'dtypeIcon',
-			expanded: true,
-			children: []
-		};
-		root.children.push(nodes[typeid]);
-	}*/
 	
     for (var i = 0; i < list.length; i++) {
     	var software = list[i];
@@ -188,6 +214,7 @@ SoftwareViewer.prototype.addSoftware = function() {
                     		leaf: true,
                     		iconCls: 'compIcon'
                     	});
+                    	pNode.expand();
                         This.treePanel.getStore().sort('text', 'ASC');
                     } else {
                         _console(response.responseText);
@@ -220,7 +247,7 @@ SoftwareViewer.prototype.addSoftwareType = function() {
     Ext.Msg.prompt("Add Software Type", "Enter name for the new Software Type:", function(btn, text) {
         if (btn == 'ok' && text) {
             text = getRDFID(text);
-            var typeid = This.ns[''] + text;
+            var typeid = This.ns['lib'] + text;
             var enode = cTree.getStore().getNodeById(typeid);
             if (enode) {
                 showError(text + ' already exists');
@@ -256,6 +283,92 @@ SoftwareViewer.prototype.addSoftwareType = function() {
             });
         }
     }, window, false);
+};
+
+SoftwareViewer.prototype.confirmAndDelete = function(node) {
+	var This = this;
+    var opurl = This.op_url + '/delSoftware';
+    var params = {};
+    if (!node.data.leaf) {
+        opurl += "Type";
+        params['typeid'] = node.data.id;
+    }
+    else {
+    	params['softwareid'] = node.data.id;
+    }
+    Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(node.id), function(yesno) {
+        if (yesno == "yes") {
+            Ext.get(This.treePanel.getId()).mask("Deleting..");
+            Ext.Ajax.request({
+                url: opurl,
+                params: params,
+                success: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+                        node.parentNode.removeChild(node);
+                        This.tabPanel.remove(This.tabPanel.getActiveTab());
+                    } else {
+                        _console(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    });	
+};
+
+SoftwareViewer.prototype.confirmAndRename = function(node) {
+	var This = this;
+    var opurl = This.op_url + '/renameSoftware';
+    var params = {};
+    if (!node.data.leaf) {
+        opurl += "Type";
+        params['typeid'] = node.data.id;
+    }
+    else {
+    	params['softwareid'] = node.data.id;
+    }
+    
+    var name = getLocalName(node.data.id);
+    var ns = getNamespace(node.data.id);
+    
+    Ext.Msg.prompt("Rename " + name, "Enter new name:", function(btn, text) {
+        if (btn == 'ok' && text) {
+            var newName = getRDFID(text);
+            var newid = ns + newName;
+            var enode = This.treePanel.getStore().getNodeById(newid);
+            if (enode) {
+                showError(getRDFID(text) + ' already exists ! Choose a different name.');
+                This.confirmAndRename(node);
+                return;
+            }
+            Ext.get(This.treePanel.getId()).mask("Renaming..");
+            
+            params['newid'] = newid;
+            Ext.Ajax.request({
+                url: opurl,
+                params: params,
+                success: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+                    	node.set('text', newName);
+                    	node.set('id', newid);
+                    	node.commit();
+                    	This.treePanel.getStore().sort('text', 'ASC');
+                    } else {
+                        _console(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    }, this, false, name);	
 };
 
 SoftwareViewer.prototype.importSoftware = function(repo_id) {
@@ -480,6 +593,7 @@ SoftwareViewer.prototype.openSoftwareTypeEditor = function(args) {
     
 	tab.form = {
 		xtype : 'form',
+		layout: 'fit',
 		frame : true,
 		bodyStyle : 'padding:5px',
 		margin : 5,
@@ -2162,6 +2276,108 @@ SoftwareViewer.prototype.initSoftwareTreePanelEvents = function() {
     return This.treePanel;
 };
 
+SoftwareViewer.prototype.onSoftwareItemContextMenu = function(
+		sview, node, item, index, e, eOpts) {
+    var This = this;
+    e.stopEvent();
+    if (!this.menu) {
+        this.menu = Ext.create('Ext.menu.Menu', {
+            items: [This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(), '-', 
+                    This.getImportMenuItem(), '-',
+                    This.getRenameMenuItem(), This.getDeleteMenuItem()]
+            });
+        this.swmenu = Ext.create('Ext.menu.Menu', {
+            items: [This.getRenameMenuItem(), This.getDeleteMenuItem()]
+            });
+        this.sysmenu = Ext.create('Ext.menu.Menu', {
+            items: [This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(), '-', 
+                    This.getImportMenuItem()]
+            });
+    }
+    if (node.raw.readonly)
+        this.sysmenu.showAt(e.getXY());
+    else if(node.data.leaf)
+    	this.swmenu.showAt(e.getXY());
+    else
+        this.menu.showAt(e.getXY());
+};
+
+
+SoftwareViewer.prototype.getAddSoftwareMenuItem = function() {
+	var This = this;
+	return {
+		itemId: 'createbutton',
+		text: 'Add Software',
+		iconCls: 'addIcon',
+		handler: function() {
+	        This.addSoftware();
+	    }
+	};
+};
+
+SoftwareViewer.prototype.getAddSoftwareTypeMenuItem = function() {
+	var This = this;
+	return {
+		itemId: 'createtypebutton',
+		text: 'Add Software Type',
+		iconCls: 'dtypeIcon',
+		handler: function() {
+	        This.addSoftwareType();
+	    }
+	};
+};
+
+SoftwareViewer.prototype.getImportMenuItem = function() {
+	var This = this;
+	return {
+		itemId: 'importbutton',
+		text: 'Import CSDMS Software',
+		iconCls: 'importIcon',
+		handler: function() {
+	        This.importSoftware('CSDMS');
+	    }
+	};
+};
+
+SoftwareViewer.prototype.getDeleteMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Delete',
+        iconCls: 'delIcon',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length || !nodes[0].parentNode)
+                return;
+            var node = nodes[0];
+            if(node.raw.readonly) {
+            	showError('Cannot delete a system software type');
+            	return;
+            }
+            This.confirmAndDelete(node);
+        }
+    };
+};
+
+SoftwareViewer.prototype.getRenameMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Rename',
+        iconCls: 'docsIcon',
+        //FIXME: Get an "Edit" icon for this
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length || !nodes[0].parentNode)
+                return;
+            var node = nodes[0];
+            if(node.raw.readonly) {
+            	showError('Cannot rename a system datatype');
+            	return;
+            }
+            This.confirmAndRename(node);
+        }
+    };
+};
+
 SoftwareViewer.prototype.initialize = function() {
     // Add the template tabPanel in the center
     var This = this;
@@ -2187,80 +2403,16 @@ SoftwareViewer.prototype.initialize = function() {
     this.treePanel = this.getSoftwareListTree();
     
     var This = this;
-    var delbtn = new Ext.Button({
-        text: 'Delete',
-        iconCls: 'delIcon',
-        handler: function() {
-            var nodes = This.treePanel.getSelectionModel().getSelection();
-            if (!nodes || !nodes.length)
-                return;
-            var node = nodes[0];
-            var opurl = This.op_url + '/delSoftware';
-            var params = {};
-            if (!node.data.leaf) {
-                opurl += "Type";
-                params['typeid'] = node.data.id;
-            }
-            else {
-            	params['softwareid'] = node.data.id;
-            }
-            Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(node.id), function(yesno) {
-                if (yesno == "yes") {
-                    Ext.get(This.treePanel.getId()).mask("Deleting..");
-                    Ext.Ajax.request({
-                        url: opurl,
-                        params: params,
-                        success: function(response) {
-                            Ext.get(This.treePanel.getId()).unmask();
-                            if (response.responseText == "OK") {
-                                node.parentNode.removeChild(node);
-                                This.tabPanel.remove(This.tabPanel.getActiveTab());
-                            } else {
-                                _console(response.responseText);
-                            }
-                        },
-                        failure: function(response) {
-                            Ext.get(This.treePanel.getId()).unmask();
-                            _console(response.responseText);
-                        }
-                    });
-                }
-            });
-        }
-    });
-
     var tbar = null;
     if (this.advanced_user) {
         tbar = [{
         	text: 'Add',
     	    iconCls: 'addIcon',
-    	    menu:[
-    	    {
-    	    	itemId: 'createbutton',
-    	    	text: 'Add Software',
-    	    	iconCls: 'addIcon',
-    	    	handler: function() {
-                    This.addSoftware();
-                }
-    	    },
-    	    {
-    	    	itemId: 'createtypebutton',
-    	    	text: 'Add Software Type',
-    	    	iconCls: 'dtypeIcon',
-    	    	handler: function() {
-                    This.addSoftwareType();
-                }
-    	    },
-    	    {
-    	    	itemId: 'importbutton',
-    	    	text: 'Import CSDMS Software',
-    	    	iconCls: 'importIcon',
-    	    	handler: function() {
-                    This.importSoftware('CSDMS');
-                }
-    	    }]
-        }];
-        tbar.push(delbtn);
+    	    menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
+    	          '-', This.getImportMenuItem()]
+        },
+        This.getRenameMenuItem(),
+        This.getDeleteMenuItem()];
     }
 
     var leftPanel = new Ext.TabPanel({

@@ -497,7 +497,7 @@ public class DataKB implements DataAPI {
 	        ArrayList<KBObject> subclasses = this.kb.getSubClasses(cls, true);
 	        for (KBObject subcls : subclasses) {
 	          if (!subcls.getNamespace().equals(this.dcdomns)
-	              && !subcls.getNamespace().equals(this.dcdomns))
+	              && !subcls.getNamespace().equals(this.dcns))
 	            continue;
 	          DataItem institem = new DataItem(subcls.getID(), DataItem.DATATYPE);
 	          DataTreeNode childnode = new DataTreeNode(institem);

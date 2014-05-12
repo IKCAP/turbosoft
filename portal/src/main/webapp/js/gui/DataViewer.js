@@ -719,6 +719,10 @@ DataViewer.prototype.confirmAndDeleteData = function(node) {
 
 DataViewer.prototype.confirmAndDeleteDatatype = function(node) {
     var This = this;
+    if(node.raw.readonly) {
+    	showError('Cannot delete a system datatype');
+    	return;
+    }
     var msg = "Are you sure you want to Delete " + node.data.text;
     msg += ".. This will also delete the files under this File Type";
     Ext.MessageBox.confirm("Confirm Delete", msg, function(b) {
@@ -1037,6 +1041,10 @@ DataViewer.prototype.getRenameMenuItem = function() {
             if (!node.data.isClass) {
                 This.confirmAndRenameData(node);
             } else {
+                if(node.raw.readonly) {
+                	showError('Cannot rename a system datatype');
+                	return;
+                }
                 This.confirmAndRenameDatatype(node);
             }
         }
@@ -1051,7 +1059,9 @@ DataViewer.prototype.createDataTreeToolbar = function() {
             text: 'Add',
             iconCls: 'addIcon',
             menu: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
-            }, '-', This.getDeleteMenuItem()]
+            }, 
+            This.getRenameMenuItem(), 
+            This.getDeleteMenuItem()]
         });
     This.dataTreePanel.addDocked(toolbar);
     This.dataTreePanel.doComponentLayout();
@@ -1065,14 +1075,19 @@ DataViewer.prototype.onDataItemContextMenu = function(dataview, node, item, inde
             items: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem(), '-', 
                     This.getRenameMenuItem(), This.getDeleteMenuItem()]
             });
-        this.topmenu = Ext.create('Ext.menu.Menu', {
+        this.datamenu = Ext.create('Ext.menu.Menu', {
+            items: [This.getRenameMenuItem(), This.getDeleteMenuItem()]
+            });
+        this.sysmenu = Ext.create('Ext.menu.Menu', {
             items: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
             });
     }
-    if (node.parentNode)
-        this.menu.showAt(e.getXY());
+    if (node.raw.readonly)
+        this.sysmenu.showAt(e.getXY());
+    else if(node.data.leaf)
+    	this.datamenu.showAt(e.getXY());
     else
-        this.topmenu.showAt(e.getXY());
+        this.menu.showAt(e.getXY());
 };
 
 DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
@@ -1226,16 +1241,21 @@ DataViewer.prototype.getTree = function(data) {
 	if(!data) return null;
 	
     var item = data.item;
+    item.readonly = (getNamespace(item.id) == this.dcns);
     var treenode = {
         text: getLocalName(item.id),
         id: item.id,
         isClass: (item.type == 1),
         leaf: (item.type == 1 ? false: true),
-        iconCls: (item.type == 1 ? 'dtypeIcon': 'dataIcon'),
+        readonly: item.readonly,
+        iconCls: (item.type == 1 
+        		? (item.readonly ? 'ontdtypeIcon' : 'dtypeIcon' ) 
+        		: 'dataIcon'),
         expanded: true,
-        draggable: (item.type == 1),
+        allowDrag: (item.type == 1 && !item.readonly),
         children: []
-        };
+    };
+	
     if (data.children) {
         for (var i = 0; i < data.children.length; i++)
             treenode.children.push(this.getTree(data.children[i]));

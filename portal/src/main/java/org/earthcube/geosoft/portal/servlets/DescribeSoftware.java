@@ -115,7 +115,30 @@ public class DescribeSoftware extends HttpServlet {
         if (!config.isSandboxed())
           if (mc.delSoftwareType(typeid))
             out.print("OK");
-			}
+			} else if (op.equals("renameSoftware")) {
+			  String newid = request.getParameter("newid");
+        if (!config.isSandboxed())
+          if(mc.renameSoftware(softwareid, newid))
+            out.print("OK");
+      } else if (op.equals("renameSoftwareType")) {
+        String typeid = request.getParameter("typeid");
+        String newid = request.getParameter("newid");
+        if (!config.isSandboxed())
+          if (mc.renameSoftwareType(typeid, newid))
+            out.print("OK");
+      } else if (op.equals("moveSoftware")) {
+			  softwareid = request.getParameter("id");
+			  String typeid = request.getParameter("parentid");
+        if (!config.isSandboxed())
+          if (mc.setSoftwareType(softwareid, typeid))
+            out.print("OK");
+      } else if (op.equals("moveSoftwareType")) {
+        String typeid = request.getParameter("id");
+        String parentid = request.getParameter("parentid");
+        if (!config.isSandboxed())
+          if (mc.setSoftwareTypeParent(typeid, parentid))
+            out.print("OK");
+      }
 		}
 	}
 

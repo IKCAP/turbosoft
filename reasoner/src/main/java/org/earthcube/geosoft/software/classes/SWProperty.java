@@ -7,6 +7,7 @@ public class SWProperty {
   String label;
   boolean isObjectProperty;
   String range;
+  String domain;
   ArrayList<String> possibleValues;
   String category;
   String comment;
@@ -47,6 +48,14 @@ public class SWProperty {
 
   public void setRange(String range) {
     this.range = range;
+  }
+
+  public String getDomain() {
+    return domain;
+  }
+
+  public void setDomain(String domain) {
+    this.domain = domain;
   }
 
   public boolean isObjectProperty() {

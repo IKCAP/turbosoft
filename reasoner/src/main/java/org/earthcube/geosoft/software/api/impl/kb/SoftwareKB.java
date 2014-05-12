@@ -87,11 +87,12 @@ public class SoftwareKB implements SoftwareAPI {
       this.kb.importFrom(this.ontologyFactory.getKB(d_onturl, OntSpec.PLAIN, false));
       
       this.writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
+      this.writerkb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true));
       
       this.skbs = new HashMap<String, KBAPI>();
       this.surls = new HashMap<String, String>();
       
-      this.createEntailments(this.kb);
+      //this.createEntailments(this.kb);
       this.initializeMaps(this.kb);
       //this.initDomainKnowledge();
       //this.setRuleMappings(this.kb);
@@ -122,18 +123,35 @@ public class SoftwareKB implements SoftwareAPI {
     }
   }
   
-  private void createEntailments(KBAPI kb) {
-    for(KBObject cls : kb.getAllClasses()) {
-      if(!cls.getNamespace().equals(this.ontns))
-        continue;
-      for(KBObject supercls : kb.getSuperClasses(cls, true)) {
-        for(KBObject obj : kb.getInstancesOfClass(cls, true)) {
-          kb.addClassForInstance(obj, supercls);
-        }
-      }
+  private ArrayList<KBTriple> createEntailments(KBAPI kb, KBObject obj, 
+      KBObject cls, KBObject typeProp, ArrayList<KBTriple> triples) {
+    for(KBObject supercls : kb.getSuperClasses(cls, false)) {
+      KBTriple triple = this.ontologyFactory.getTriple(obj, typeProp, supercls);
+      triples.add(triple);
+      kb.addTriple(triple);
+      triples = this.createEntailments(kb, obj, supercls, typeProp, triples);
     }
+    return triples;
   }
-
+  
+  private ArrayList<KBTriple> createEntailments(KBAPI kb) {
+    KBObject typeProp = kb.getProperty(KBUtils.RDF+"type");
+    ArrayList<KBTriple> addedTriples = new ArrayList<KBTriple>();
+    for(KBObject cls : kb.getAllClasses()) {
+      if(!cls.getNamespace().equals(this.ontns) &&
+          !cls.getNamespace().equals(this.liburl+"#"))
+        continue;
+      for(KBObject obj : kb.getInstancesOfClass(cls, true))
+        addedTriples = this.createEntailments(kb, obj, cls, typeProp, addedTriples);
+    }
+    return addedTriples;
+  }
+  
+  private void removeEntailments(KBAPI kb, ArrayList<KBTriple> entailments) {
+    for(KBTriple triple: entailments)
+      kb.removeTriple(triple);
+  }
+  
   /*private void initDomainKnowledge() {
     // Create general domain knowledge data for use in rules
     domainKnowledge = new ArrayList<KBTriple>();
@@ -161,7 +179,10 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   public SoftwareType getSoftwareTypesTree() {
-    return this.getSoftwareType(this.ontns + "Software", true);
+    ArrayList<KBTriple> entailments = this.createEntailments(this.kb);
+    SoftwareType rootType = this.getSoftwareType(this.ontns + "Software", true);
+    this.removeEntailments(this.kb, entailments);
+    return rootType;
   }
   
   @Override
@@ -179,12 +200,14 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   public ArrayList<Software> getSoftwares(boolean details) {
+    ArrayList<KBTriple> entailments = this.createEntailments(kb);
     ArrayList<Software> softwares = new ArrayList<Software>();
     KBObject softwarecls = this.kb.getConcept(this.ontns + "Software");
     ArrayList<KBObject> softwareobjs = this.kb.getInstancesOfClass(softwarecls, false);
     for (KBObject softwareobj : softwareobjs) {
       softwares.add(getSoftware(softwareobj.getID(), details));
     }
+    this.removeEntailments(kb, entailments);
     return softwares;
   }
   
@@ -289,6 +312,16 @@ public class SoftwareKB implements SoftwareAPI {
     return ok1 && ok2;
   }
 
+  @Override
+  public boolean setSoftwareType(String softwareid, String typeid) {
+    KBObject mobj = this.kb.getIndividual(softwareid);
+    if(mobj == null) return false;
+    KBObject cls = this.kb.getConcept(typeid);
+    if(cls == null) return false;
+    this.writerkb.setClassForInstance(mobj, cls);
+    return true;
+  }
+  
   @Override
   public boolean addSoftware(Software software) {
     String softwareid = software.getID();
@@ -423,6 +456,12 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   @Override
+  public boolean renameSoftwareType(String oldid, String newid) {
+    KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
+    return true;
+  }
+  
+  @Override
   public boolean addSoftwareType(String typeid, String parentid) {
     KBObject pcls = this.kb.getConcept(parentid);
     if(pcls == null)
@@ -435,10 +474,12 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   /**
-   * This just updates the software type annotation for now
+   * This just updates the software type annotation & parent for now
    */
   public boolean updateSoftwareType(SoftwareType type) {
     KBObject cls = this.kb.getConcept(type.getId());
+    // Add new information
+    this.writerkb.setSuperClass(type.getId(), type.getParentid());
     this.writerkb.setComment(cls, type.getAnnotation());
     return true;
   }
@@ -682,6 +723,10 @@ public class SoftwareKB implements SoftwareAPI {
     SWProperty prop = new SWProperty(propobj.getID(), this.kb.getLabel(propobj));
     prop.setObjectProperty(this.kb.isObjectProperty(propobj));
 
+    KBObject domain = this.kb.getPropertyDomain(propobj);
+    if(domain != null)
+      prop.setDomain(domain.getID());
+    
     // Get range (from non-inference kb -- else we get indirect ranges as well)
     KBObject range = this.kb.getPropertyRange(propobj);
     if(range != null)

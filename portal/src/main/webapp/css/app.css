@@ -28,6 +28,10 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	background-image: url(../images/datatype.gif) !important
 }
 
+.ontdtypeIcon {
+	background-image: url(../images/ontdatatype.gif) !important
+}
+
 .dataIcon {
 	background-image: url(../images/file.png) !important
 }

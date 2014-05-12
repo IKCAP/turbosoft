@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class SoftwareType {
   String id;
+  String parentid;
   String annotation;
   ArrayList<SoftwareType> subtypes;
   
@@ -21,6 +22,14 @@ public class SoftwareType {
     this.id = id;
   }
   
+  public String getParentid() {
+    return parentid;
+  }
+
+  public void setParentid(String parentid) {
+    this.parentid = parentid;
+  }
+
   public String getAnnotation() {
     return annotation;
   }

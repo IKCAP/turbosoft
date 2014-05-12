@@ -228,6 +228,52 @@ public class SoftwareController {
     }
   }
 
+  public synchronized boolean setSoftwareType(String softwareid, String typeid) {
+    try {
+      return this.api.setSoftwareType(softwareid, typeid) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+
+  public synchronized boolean setSoftwareTypeParent(String typeid, String parentid) {
+    try {
+      SoftwareType type = this.api.getSoftwareType(typeid, false);
+      type.setParentid(parentid);
+      return this.api.updateSoftwareType(type) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+
+  public synchronized boolean renameSoftware(String softwareid, String newid) {
+    try {
+      return this.api.renameSoftware(softwareid, newid) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+  
+  public synchronized boolean renameSoftwareType(String typeid, String newid) {
+    try {
+      return this.api.renameSoftwareType(typeid, newid) && this.api.save();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    } finally {
+      api.end();
+    }
+  }
+  
   public synchronized boolean addSoftwareType(String typeid, String parentid) {
     try {
       return this.api.addSoftwareType(typeid, parentid) && this.api.save();
