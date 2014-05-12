@@ -1,0 +1,352 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#"
+     xml:base="http://www.isi.edu/ikcap/geosoft/ontology/data.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasMetrics -->
+
+    <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasMetrics">
+        <rdfs:domain rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasDataMetrics -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasDataMetrics">
+        <rdfs:domain rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasLocation -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#hasLocation">
+        <rdfs:domain rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#3gpp -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#3gpp">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#Metrics -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#Metrics"/>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#Other -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#Other">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#FileType"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#aiff -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#aiff">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#avi -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#avi">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#css -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#css">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#csv -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#csv">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#gif -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#gif">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#gzip -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#gzip">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#html -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#html">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#jpeg -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#jpeg">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#json -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#json">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#midi -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#midi">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#mpeg -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#mpeg">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#mpeg3 -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#mpeg3">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#audio"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#msvideo -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#msvideo">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#pdf -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#pdf">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#plain -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#plain">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#png -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#png">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#quicktime -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#quicktime">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#rtf -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#rtf">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#svg -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#svg">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#tiff -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#tiff">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#image"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#tsv -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#tsv">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#MIME"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#x-dv -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#x-dv">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#video"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#xml -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#xml">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#text"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/data.owl#zip -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#zip">
+        <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/data.owl#application"/>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
+

@@ -1,0 +1,13 @@
+[ NetCDFPostProcessing:
+	(?m rdf:type ts:Software)
+	(?m ts:hasOutput ?out)
+	(?out rdf:type data:NetCDF)
+	makeTemp(?vh)
+->
+	(?m ts:hasValueHolder ?vh)
+	(?vh rdf:type ts:ValueHolder)
+	(?vh ts:PostProcessingSoftware "Something that handles NetCDF files")
+	(?vh ts:NeedsPostProcessing "true"^^xsd:boolean)
+	(?vh ts:isInferred "true"^^xsd:boolean)
+	print (Setting Post Processing Information for NetCDF output)
+]
