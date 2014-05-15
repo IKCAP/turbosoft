@@ -1406,6 +1406,7 @@
 
     <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#App">
         <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Software"/>
+        <rdfs:comment>This class of software includes mobile apps developed for iPhone and Android devices.</rdfs:comment>
     </owl:Class>
     
 
@@ -1423,6 +1424,7 @@
     <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DataProcessingComponent">
         <rdfs:label>Data Processing Component</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareComponent"/>
+        <rdfs:comment>This class of software includes data preparation scripts, including data cleaning, data reformatting, and data merging.</rdfs:comment>
     </owl:Class>
     
 
@@ -1516,6 +1518,7 @@
     <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareComponent">
         <rdfs:label>Software Component</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Software"/>
+        <rdfs:comment>This class of software includes geoscience software that is encapsulated with pre-configured settings so that it has a single command line invocation with clear inputs and outputs.  </rdfs:comment>
     </owl:Class>
     
 
@@ -1531,6 +1534,7 @@
     <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwarePackage">
         <rdfs:label>Software Package</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Software"/>
+        <rdfs:comment>This class of software includes packages that have configuration files and many settings, often including many functions as part of the same package.  Particular functions can be set up through configuration files or by invoking different commands.  MatLab is an example of a package.  D3 is an example of a visualization package, with many possible configurations and settings to generate many types of graphics.</rdfs:comment>
     </owl:Class>
     
 
