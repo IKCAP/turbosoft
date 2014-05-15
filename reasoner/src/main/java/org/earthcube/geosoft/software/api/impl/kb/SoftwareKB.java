@@ -532,8 +532,10 @@ public class SoftwareKB implements SoftwareAPI {
   public boolean updateSoftwareType(SoftwareType type) {
     KBObject cls = this.kb.getConcept(type.getId());
     // Add new information
-    this.writerkb.setSuperClass(type.getId(), type.getParentid());
-    this.writerkb.setComment(cls, type.getAnnotation());
+    if(type.getParentid() != null)
+      this.writerkb.setSuperClass(type.getId(), type.getParentid());
+    if(type.getAnnotation() != null)
+      this.writerkb.setComment(cls, type.getAnnotation());
     return true;
   }
   
