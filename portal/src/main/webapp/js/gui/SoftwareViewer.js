@@ -455,7 +455,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         	var software = This.createSoftwareFromForm(form, id, compStore.classId);
         	if(!software)
         		return;
-        	
+
         	Ext.get(This.tabPanel.getId()).mask("Saving..");
         	Ext.Ajax.request({
                 url: This.op_url + '/saveSoftwareJSON',
@@ -504,6 +504,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         	var form = tab.down('form');
         	Ext.get(This.tabPanel.getId()).mask("Getting Suggestions..");
         	var software = This.createSoftwareFromForm(form, id, compStore.classId);
+
         	Ext.Ajax.request({
                 url: This.op_url + '/getInferredSoftware',
                 params: {
@@ -747,6 +748,27 @@ SoftwareViewer.prototype.createSoftwareFromForm = function (form, softwareid, cl
 	        	software.standardnames.push(This.prepareRoleRecord(rec.data));
 	        }
 	    });
+		
+		var fileGrids = form.query('grid[type=filegrid]');
+		for(var j=0; j<fileGrids.length; j++) {
+			var fileGrid = fileGrids[j];
+		    fileGrid.getStore().each(function(rec) {
+		    	var item = This.prepareRoleRecord(rec.data);
+		    	item.type = fileGrid.range;
+		    	var prov = item.provenance;
+		    	var provarr = [];
+		    	for(var ppropid in prov) {
+					if(prov[ppropid])
+						provarr.push({propertyId: ppropid, value: prov[ppropid]});
+				}
+		    	delete item.provenance;
+		    	software.propertyValues.push({
+		    		propertyId: fileGrid.propid, 
+		    		value: item,
+		    		provenance: provarr
+		    	});
+		    });
+		}
 	}
 	
 	// Set labels for new ids
@@ -799,7 +821,7 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
 	var npvs = this.coalesceSoftwarePropertyValues(newsoftware);
     for(var i=0; i<this.store.properties.length; i++) {
     	var prop = this.store.properties[i];
-    	if(!prop.category)
+    	if(prop.parentIds.length == 0)
     		continue;
 		var pval = pvs[prop.id];
 		var npval = npvs[prop.id];
@@ -960,6 +982,18 @@ SoftwareViewer.prototype.getExplanationGrid = function(data) {
     return exp;
 };
 
+SoftwareViewer.prototype.getSuperClasses = function(clsid, clsnode, supers) {
+	supers.push(clsnode.id);
+	if(clsnode.id == clsid) 
+		return supers;
+	for(var i=0; i<clsnode.subtypes.length; i++) {
+		var tmp = supers.concat();
+		var search = this.getSuperClasses(clsid, clsnode.subtypes[i], tmp);
+		if(search != null)
+			return search;
+	}
+	return null;
+};
 
 SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab, savebtn, editable) {
 	var editorPanel = {
@@ -991,15 +1025,6 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 		items : []
 	};
 	editorPanel.items.push(editorTabPanel);
-    
-	var ioEditor = this.getIOListEditor(id, store, this.store.data_types, maintab, savebtn, editable);
-	editorTabPanel.items.push(ioEditor);
-	
-	var asEditor = this.getAssumptionsEditor(id, store, this.store.sninfo, maintab, savebtn, editable);
-	editorTabPanel.items.push(asEditor);
-
-	var snEditor = this.getStandardNamesEditor(id, store, this.store.sninfo, maintab, savebtn, editable);
-	editorTabPanel.items.push(snEditor);
 	
 	var propContainer = {};
 	var sectionById = {};
@@ -1007,9 +1032,24 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	
 	var propValues = {};
 	var propProv = {};
+	var prop = [];
 	for(var i=0; i<store.propertyValues.length; i++) {
 		var pv = store.propertyValues[i];
 		var prop = pv.propertyId;
+		
+		// Store value provenance
+		var provObject = {};
+		var prov = pv.provenance;
+		for(var j=0; j<prov.length; j++) {
+			var ppv = prov[j];
+			var pprop = ppv.propertyId;
+			provObject[pprop] = ppv.value;
+		}
+		if(!propProv[prop])
+			propProv[prop] = provObject;
+		pv.value.provenance = provObject;
+		
+		// Store value
 		var curval = propValues[prop];
 		if(curval) {
 			if(Array.isArray(curval)) 
@@ -1019,16 +1059,6 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 		}
 		else
 			propValues[prop] = pv.value;
-		
-		if(!propProv[prop])
-			propProv[prop] = {};
-		// Store provenance
-		var prov = pv.provenance;
-		for(var j=0; j<prov.length; j++) {
-			var ppv = prov[j];
-			var pprop = ppv.propertyId;
-			propProv[prop][pprop] = ppv.value;
-		}
 	}
 	
 	var This = this;
@@ -1043,36 +1073,81 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 		return ((secx*100 + posx) - (secy*100 + posy));
 	});
 	
+	// Get superclasses
+	var clsids = this.getSuperClasses(store.classId, this.store.software_types, []);
+
+	// Get tab groups for this class
+	var tabGroupPropIds = [];
+	for(var i=0; i<props.length; i++) {
+		var prop = props[i];
+		var pcom = This.propcomments[prop.id];
+		var isTabGroupProp = false;
+		// If this is a tab group property
+		if(pcom && pcom.ui && pcom.ui.tabs) {
+			// Check each item in pcom.ui.includes
+			if(pcom.ui.includes) 
+				for(var j=0; j<pcom.ui.includes.length; j++)
+					if(clsids.indexOf(this.ns[''] + pcom.ui.includes[j]) >=0)
+						isTabGroupProp = true;
+			// Check each item in pcom.ui.excludes
+			if(pcom.ui.excludes) 
+				for(var j=0; j<pcom.ui.excludes.length; j++)
+					if(clsids.indexOf(this.ns[''] + pcom.ui.excludes[j]) >=0)
+						isTabGroupProp = false;
+		}
+		if(isTabGroupProp)
+			tabGroupPropIds.push(prop.id);
+	}
+	
 	// Create tabs
 	for(var i=0; i<props.length; i++) {
 		var prop = props[i];
-		propLabels[prop.id] = prop.label;
-		if(!prop.category) {
-			var label = propLabels[prop.id];
-			var tab = propContainer[label];
-			if(!tab) {
-				tab = {
-					xtype: 'panel',
-					title: prop.label,
-			        frame:true,
-			        layout: 'form',
-			        bodyStyle:'padding:5px',
-			        margin: 5,
-					autoScroll: true,
-					items: []
-				};
-				propContainer[prop.label] = tab;
-				editorTabPanel.items.push(tab);
+		for(var j=0; j<prop.parentIds.length; j++) {
+			var parentId = prop.parentIds[j];
+			if(tabGroupPropIds.indexOf(parentId) >= 0) {
+				propLabels[prop.id] = prop.label;
+				var tab = propContainer[prop.label];
+				if(!tab) {
+					tab = {
+						xtype: 'panel',
+						title: prop.label,
+				        frame:true,
+				        layout: 'form',
+				        bodyStyle:'padding:5px',
+				        margin: 5,
+						autoScroll: true,
+						items: []
+					};
+					propContainer[prop.label] = tab;
+					editorTabPanel.items.push(tab);
+				}
 			}
 		}
 	}
 	
+    // Add IO, Assumptions, Standard Names editors
+	var ioEditor = propContainer['I/O'];
+	var asEditor = propContainer['Assumptions'];
+	var snEditor = propContainer['Standard Names'];
+	if(ioEditor)
+		this.getIOListEditor(id, store, this.store.data_types, 
+				ioEditor, maintab, savebtn, editable);
+	if(asEditor)
+		this.getAssumptionsEditor(id, store, this.store.sninfo, 
+				asEditor, maintab, savebtn, editable);
+	if(snEditor)
+		this.getStandardNamesEditor(id, store, this.store.sninfo, 
+				snEditor, maintab, savebtn, editable);
+		
 	// Create sections (if needed)
 	for(var i=0; i<props.length; i++) {
 		var prop = props[i];
-		if(prop.category) {
-			var catlabel = propLabels[prop.category];
+		for(var j=0; j<prop.parentIds.length; j++) {
+			var parentId = prop.parentIds[j];
+			var catlabel = propLabels[parentId];
+			if(!catlabel) continue;
 			var tab = propContainer[catlabel];
+			if(!tab) continue;
 			var pcui = This.propcomments[prop.id].ui;
 			if( pcui && pcui.section) {
 				var fset = propContainer[catlabel+":"+pcui.section];
@@ -1093,9 +1168,11 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	// Create editors within the tabs
 	for(var i=0; i<props.length; i++) {
 		var prop = props[i];
-		if(prop.category) {
+		for(var j=0; j<prop.parentIds.length; j++) {
+			var parentId = prop.parentIds[j];
+			var catlabel = propLabels[parentId];
+			if(!catlabel) continue;
 			var pcui = This.propcomments[prop.id].ui;
-			var catlabel = propLabels[prop.category];
 			var comp = null;
 			if(pcui && pcui.section)
 				comp = propContainer[catlabel + ":" + pcui.section];
@@ -1104,79 +1181,208 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			if(!comp) continue;
 			var provenance = propProv[prop.id];
 			
-			var item = {
-				name: prop.id,
-				fieldLabel: prop.label ? prop.label : getLocalName(prop.id),
-				value: propValues[prop.id],
-				flex: 1,
-				anchor: '100%',
-				provenance: provenance,
-				fieldStyle: this.getProvenanceStyle(provenance),
-				listeners: {
-					change: function (item, newv, oldv, opts) {
-						item.provenance = {};
-						item.provenance[This.ns[''] + "editedBy"] = USER_ID;
-						item.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
-						item.setFieldStyle(This.getProvenanceStyle(item.provenance));
-						
-						var infolabel = item.nextSibling('label');
-						infolabel.setText(This.getProvenanceHtml(item.provenance), false);
+			if(pcui && pcui.isfile) {
+		        var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
+		            clicksToEdit: 1,
+		            listeners: {
+		            	edit: function(editor, e, opts) {
+		            		// Set provenance if value changed
+		            		if(e.value != e.originalValue) {
+		            			var prov = {};
+		            			prov[This.ns[''] + "editedBy"] = USER_ID;
+		    					prov[This.ns[''] + "timestamp"] = (new Date()).getTime();
+		    					e.record.set('provenance', prov);
+		            		}
+		            	}
+		            }
+		        });
+				// Create a grid
+				var filegrid = {
+					xtype: 'grid',
+					type: 'filegrid',
+					propid: prop.id,
+					title: prop.label,
+					range: prop.range,
+			        columns: [{
+			            dataIndex: 'hasFileLocation',
+			            header: 'File Location',
+			            menuDisabled: true,
+			            flex: 1,
+			            editor: true,
+						// TODO: Editor should be the uploader
+			            /*editor: new Ext.form.field.Trigger({
+		                    onTriggerClick: function() {
+								// Open up upload window
+		                    }
+			            })*/
+			        }],
+			        plugins: [editorPlugin],
+			        selModel: Ext.create('Ext.selection.CheckboxModel'),
+		            selType: 'cellmodel',
+		            bodyCls: "multi-line-grid",
+		            columnLines: true,
+		            autoHeight: true
+				};
+				
+				var fields = ['hasFileLocation'];
+				
+				// Columns of the grid (all with simple text editors for now): 
+				// - file location (populated with propValues[id].hasFileLocation)
+				// - for each prop in extra
+				//   - extraprop.label (populated with propValues[id].[extraProp]
+				if(pcui.extra) {
+					for(var j=0; j<pcui.extra.length; j++) {
+						var extraprop = This.properties[this.ns[''] + pcui.extra[j]];
+						var extrapcom = This.propcomments[extraprop.id];
+						filegrid.columns.push({
+							dataIndex: getLocalName(extraprop.id),
+							header: extraprop.label ? 
+									extraprop.label : getLocalName(extraprop.id),
+							menuDisabled: true,
+							flex: 1,
+							editor: true
+						});
+						fields.push(getLocalName(extraprop.id));
 					}
 				}
-			};
-			if(prop.isObjectProperty) {
-				var store = new Ext.data.Store({
-					fields: ['value'],
-					sorters: ['value'],
-					data: Ext.Array.map (prop.possibleValues, function (x) {
-						return {id: x, value: getLocalName(x)};
-					}, this)
+				fields.push('provenance');
+				filegrid.columns.push({
+		        	dataIndex: 'provenance',
+		        	header: 'Provenance',
+		        	flex: 1,
+		        	editable: false,
+		        	renderer: function (v) {
+		        		return This.getProvenanceCreationHtml(v);
+		        	}
+		        });
+				
+				var proprole = 'FileRole'+getLocalName(prop.id);
+			    if (!Ext.ModelManager.isRegistered(proprole))
+			        Ext.define(proprole, {
+				        extend: 'Ext.data.Model',
+				        fields: fields
+			        });
+
+			    filegrid.store = {
+			    	xtype: 'store',
+			        model: proprole,
+			        data: propValues[prop.id]
+			    };
+			    filegrid.pcui = pcui;
+			    filegrid.proprole = proprole;
+			    
+				// Create a grid toolbar and have an "Add"/"Delete" button
+				filegrid.tbar = [{
+	                text: 'Add',
+	                iconCls: 'addIcon',
+	                handler: function() {
+	                	var filegrid = this.up('grid');
+	                    var gridStore = filegrid.getStore();
+	                    var pos = gridStore.getCount();
+	                    if(pos == 1 && !filegrid.pcui.multiple)
+	                    	return showError('Can only add 1 file here');
+
+	                    var sm = filegrid.getSelectionModel();
+	                    var role = eval("new "+filegrid.proprole+"();");
+	                    editorPlugin.cancelEdit();
+	                    gridStore.insert(pos, role);
+	                    editorPlugin.startEditByPosition({
+	                    	row:pos,
+	                    	column:1
+	                    });
+	                }
+	            }, {
+	                iconCls: 'delIcon',
+	                text: 'Delete',
+	                roletype: i,
+	                handler: function() {
+	                	var filegrid = this.up('grid');
+	                    var gridStore = filegrid.getStore();
+	                    editorPlugin.cancelEdit();
+	                    var s = filegrid.getSelectionModel().getSelection();
+	                    for (var i = 0, r; r = s[i]; i++) {
+	                        gridStore.remove(r);
+	                    }
+	                }
+	            }];
+				
+				comp.items.push(filegrid);
+			}
+			else {
+				var item = {
+					name: prop.id,
+					fieldLabel: prop.label ? prop.label : getLocalName(prop.id),
+					value: propValues[prop.id],
+					flex: 1,
+					anchor: '100%',
+					provenance: provenance,
+					fieldStyle: this.getProvenanceStyle(provenance),
+					listeners: {
+						change: function (item, newv, oldv, opts) {
+							item.provenance = {};
+							item.provenance[This.ns[''] + "editedBy"] = USER_ID;
+							item.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
+							item.setFieldStyle(This.getProvenanceStyle(item.provenance));
+							
+							var infolabel = item.nextSibling('label');
+							infolabel.setText(This.getProvenanceHtml(item.provenance), false);
+						}
+					}
+				};
+				if(prop.isObjectProperty) {
+					var store = new Ext.data.Store({
+						fields: ['value'],
+						sorters: ['value'],
+						data: Ext.Array.map (prop.possibleValues, function (x) {
+							return {id: x, value: getLocalName(x)};
+						}, this)
+					});
+					item.xtype = 'combo';
+					item.store = store;
+					item.multiSelect = true;
+					item.displayField = 'value';
+					item.valueField = 'id';
+					item.forceSelection = true;
+				}
+				else if(prop.range == this.ns['xsd'] + "int") {
+					item.xtype = 'numberfield';
+					item.allowDecimals = false;
+				}
+				else if(prop.range == this.ns['xsd'] + "integer") {
+					item.xtype = 'numberfield';
+					item.allowDecimals = false;
+				}
+				else if(prop.range == this.ns['xsd'] + "boolean") {
+					item.xtype = 'checkbox';
+					item.checked = Boolean(item.value);
+				}
+				else if(prop.range == this.ns['xsd'] + "date")
+					item.xtype = 'datefield';
+				else if(prop.label && prop.label.match(/descri/i)) {
+					item.xtype = 'textareafield';
+					item.rows = 8;
+				}
+				else 
+					item.xtype = 'textfield';
+				
+				var info = this.getProvenanceHtml(provenance);
+				var infoitem = {
+					xtype : 'label',
+					cls : 'info',
+					html : info,
+					width: 150,
+					style: 'padding-left:10px; font-size: 10px; font-style:italic'
+				};
+				
+				comp.items.push({
+					xtype: 'panel',
+					layout: 'hbox',
+					padding: 3,
+					border: false,
+					bodyStyle: 'background:transparent',
+					items: [item, infoitem]
 				});
-				item.xtype = 'combo';
-				item.store = store;
-				item.multiSelect = true;
-				item.displayField = 'value';
-				item.valueField = 'id';
-				item.forceSelection = true;
 			}
-			else if(prop.range == this.ns['xsd'] + "int") {
-				item.xtype = 'numberfield';
-				item.allowDecimals = false;
-			}
-			else if(prop.range == this.ns['xsd'] + "integer") {
-				item.xtype = 'numberfield';
-				item.allowDecimals = false;
-			}
-			else if(prop.range == this.ns['xsd'] + "boolean") {
-				item.xtype = 'checkbox';
-				item.checked = Boolean(item.value);
-			}
-			else if(prop.range == this.ns['xsd'] + "date")
-				item.xtype = 'datefield';
-			else if(prop.label && prop.label.match(/descri/i)) {
-				item.xtype = 'textareafield';
-				item.rows = 8;
-			}
-			else 
-				item.xtype = 'textfield';
-			
-			var info = this.getProvenanceHtml(provenance);
-			var infoitem = {
-				xtype : 'label',
-				cls : 'info',
-				html : info,
-				width: 150,
-				style: 'padding-left:10px; font-size: 10px; font-style:italic'
-			};
-			
-			comp.items.push({
-				xtype: 'panel',
-				layout: 'hbox',
-				padding: 3,
-				border: false,
-				bodyStyle: 'background:transparent',
-				items: [item, infoitem]
-			});
 		}
 	}
 	return editorPanel;
@@ -1235,19 +1441,23 @@ SoftwareViewer.prototype.getProvenanceStyle = function(provenance) {
 	return "color:grey";
 };
 
-SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types, tab, savebtn, editable) {
+SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types, 
+		mainPanel, tab, savebtn, editable) {
     var This = this;
 
-    var mainPanel = new Ext.Panel({
+    Ext.apply(mainPanel, {
+    	xtype: 'tabpanel',
         region: 'center',
-        title: 'I/O',
+        layout: 'border',
         iconCls: 'paramIcon',
+        bodyStyle:'padding:0px',
+        layout: 'auto',
         border: false,
+        padding:0,
         defaults: {
             border: false,
             padding: 0
-        },
-        autoScroll: true
+        }
     });
 
     // Register store models
@@ -1389,7 +1599,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types, tab,
             autoHeight: true,
             border: false,
             // forceFit: true,
-            title: (i == 0 ? 'Input Data': 'Output Data'),
+            title: (i == 0 ? 'Inputs': 'Outputs'),
             iconCls: (i == 0 ? 'inputIcon': 'outputIcon'),
             type: !i ? 'input' : 'output',
             columns: columns,
@@ -1428,21 +1638,25 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types, tab,
         });
     }
 
-    mainPanel.add(iDataGrid);
-    mainPanel.add(oDataGrid);
+    mainPanel.items.push(iDataGrid);
+    mainPanel.items.push(oDataGrid);
 
     return mainPanel;
 };
 
 
-SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, savebtn, editable) {
+SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, 
+		mainPanel, tab, savebtn, editable) {
     var This = this;
 
-    var mainPanel = new Ext.tab.Panel({
+    Ext.apply(mainPanel, {
+    	xtype: 'tabpanel',
         region: 'center',
         layout: 'border',
-        title: 'Assumptions',
-        border: false
+        bodyStyle:'padding:0px',
+        border: false,
+        layout: 'auto',
+        padding: 0,
     });
 
     var activeTabId = 0;
@@ -1561,6 +1775,12 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
 	            menuDisabled: true
 	        },
 	        {
+	        	dataIndex: 'note',
+	        	header: 'Note',
+	        	flex: 1,
+	        	editor: true
+	        },
+	        {
 	        	dataIndex: 'provenance',
 	        	header: 'Creation Provenance',
 	        	flex: 1,
@@ -1568,12 +1788,6 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
 	        	renderer: function (v) {
 	        		return This.getProvenanceCreationHtml(v);
 	        	}
-	        },
-	        {
-	        	dataIndex: 'note',
-	        	header: 'Note',
-	        	flex: 1,
-	        	editor: true
 	        }];
 
         var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
@@ -1698,7 +1912,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
             border: false,
             editorPlugin: editorPlugin,
             // forceFit: true,
-            title: 'Assumptions',
+            // title: 'Assumptions',
             columns: columns,
             selModel: sm,
             selType: 'cellmodel',
@@ -1729,9 +1943,9 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, tab, 
         });
         
         repotab.add(gridPanel);
-        mainPanel.add(repotab);
+        mainPanel.items.push(repotab);
     }
-    mainPanel.setActiveTab(activeTabId);
+    mainPanel.activeTab = activeTabId;
 
     return mainPanel;
 };
@@ -1743,14 +1957,18 @@ SoftwareViewer.prototype.setDefaultProvenance = function(rec) {
 	rec.set('provenance', prov);	
 };
 
-SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab, savebtn, editable) {
+SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, 
+		mainPanel, tab, savebtn, editable) {
     var This = this;
 
-    var mainPanel = new Ext.tab.Panel({
+    Ext.apply(mainPanel, {
+    	xtype: 'tabpanel',
         region: 'center',
         layout: 'border',
-        title: 'Standard Names',
-        border: false
+        bodyStyle:'padding:0px',
+        border: false,
+        layout: 'auto',
+        padding: 0,
     });
 
     var activeTabId = 0;
@@ -1931,15 +2149,6 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
 	            menuDisabled: true
 	        },
 	        {
-	        	dataIndex: 'provenance',
-	        	header: 'Creation Provenance',
-	        	flex: 1,
-	        	editable: false,
-	        	renderer: function (v) {
-	        		return This.getProvenanceCreationHtml(v);
-	        	}
-	        },
-	        {
 	        	dataIndex: 'internalVariable',
 	        	header: 'Internal Variable',
 	        	flex: 1,
@@ -1950,6 +2159,15 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
 	        	header: 'Note',
 	        	flex: 1,
 	        	editor: true
+	        },
+	        {
+	        	dataIndex: 'provenance',
+	        	header: 'Creation Provenance',
+	        	flex: 1,
+	        	editable: false,
+	        	renderer: function (v) {
+	        		return This.getProvenanceCreationHtml(v);
+	        	}
 	        }];
 
         var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
@@ -2115,7 +2333,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
             border: false,
             editorPlugin: editorPlugin,
             // forceFit: true,
-            title: 'Standard Names',
+            // title: 'Standard Names',
             columns: columns,
             selModel: sm,
             selType: 'cellmodel',
@@ -2146,9 +2364,9 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, tab
         });
         
         repotab.add(gridPanel);
-        mainPanel.add(repotab);
+        mainPanel.items.push(repotab);
     }
-    mainPanel.setActiveTab(activeTabId);
+    mainPanel.activeTab = activeTabId;
 
     return mainPanel;
 };

@@ -25,6 +25,8 @@ import org.earthcube.geosoft.software.classes.sn.StandardName;
 import org.earthcube.geosoft.util.KBUtils;
 import org.earthcube.geosoft.util.URIEntity;
 
+import com.google.gson.internal.LinkedTreeMap;
+
 import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
@@ -41,9 +43,10 @@ public class SoftwareKB implements SoftwareAPI {
   
   protected String ontns;
   protected String onturl;
+  protected String d_onturl;
   protected String liburl;
   protected String rulesurl;
-  protected String d_onturl;
+  protected String dataurl;
 
   protected OntFactory ontologyFactory;
 
@@ -70,9 +73,10 @@ public class SoftwareKB implements SoftwareAPI {
     String hash = "#";
     this.ontns = props.getProperty("ont.software.url") + hash;
     this.onturl = props.getProperty("ont.software.url");
+    this.d_onturl = props.getProperty("ont.data.url");
     this.liburl = props.getProperty("lib.software.url");
     this.rulesurl = props.getProperty("rules.software.url");
-    this.d_onturl = props.getProperty("ont.domain.data.url");
+    this.dataurl = props.getProperty("ont.domain.data.url");
     
     String tdbRepository = props.getProperty("tdb.repository.dir");
     this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
@@ -84,7 +88,8 @@ public class SoftwareKB implements SoftwareAPI {
     try {
       this.kb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN, true);
       this.kb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true));
-      this.kb.importFrom(this.ontologyFactory.getKB(d_onturl, OntSpec.PLAIN, false));
+      this.kb.importFrom(this.ontologyFactory.getKB(d_onturl, OntSpec.PLAIN, false, true));
+      this.kb.importFrom(this.ontologyFactory.getKB(dataurl, OntSpec.PLAIN, false));
       
       this.writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       this.writerkb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true));
@@ -138,6 +143,7 @@ public class SoftwareKB implements SoftwareAPI {
     KBObject typeProp = kb.getProperty(KBUtils.RDF+"type");
     ArrayList<KBTriple> addedTriples = new ArrayList<KBTriple>();
     for(KBObject cls : kb.getAllClasses()) {
+      if(cls.isAnonymous()) continue;
       if(!cls.getNamespace().equals(this.ontns) &&
           !cls.getNamespace().equals(this.liburl+"#"))
         continue;
@@ -268,7 +274,20 @@ public class SoftwareKB implements SoftwareAPI {
             continue;
           }
           else {
-            SWPropertyValue pv = new SWPropertyValue(prop.getId(), obj.isLiteral() ? obj.getValue() : obj.getID());
+            Object objval;
+            if(obj.isAnonymous()) {
+              HashMap<String, Object> objmap = new HashMap<String, Object>();
+              for(KBTriple ot : kb.genericTripleQuery(obj, null, null)) {
+                objmap.put(ot.getPredicate().getName(), ot.getObject().getValue());
+              }
+              objval = objmap;
+            }
+            else if(obj.isLiteral())
+              objval = obj.getValue();
+            else
+              objval = obj.getID();
+            
+            SWPropertyValue pv = new SWPropertyValue(prop.getId(), objval);
             if(this.provProps.containsKey(prop.getId()))
               provenance.add(pv);
             else
@@ -334,8 +353,27 @@ public class SoftwareKB implements SoftwareAPI {
         continue;
       SWProperty prop = props.get(mpv.getPropertyId());
       KBObject propobj = this.kb.getProperty(prop.getId());
-      KBObject valobj;
-      if(prop.isObjectProperty())
+      KBObject valobj = null;
+      if(mpv.getValue() instanceof LinkedTreeMap) {
+        // If value is a complex gson object
+        @SuppressWarnings("rawtypes")
+        LinkedTreeMap map = (LinkedTreeMap) mpv.getValue();
+        if(map.containsKey("type")) {
+          String typeid = (String) map.get("type");
+          KBObject typecls = this.kb.getConcept(typeid);
+          if(typecls == null) continue;
+          
+          valobj = this.writerkb.createObjectOfClass(null, typecls);
+          for(Object key : map.keySet()) {
+            if(key.equals("type"))
+              continue;
+            KBObject typeprop = this.dataPropMap.get(key);
+            KBObject typevalobj = this.kb.createLiteral(map.get(key));
+            this.writerkb.addPropertyValue(valobj, typeprop, typevalobj);
+          }
+        }
+      }
+      else if(prop.isObjectProperty())
         valobj = this.kb.getIndividual(mpv.getValue().toString());
       else {
         // Json conversion is converting all numbers to Double. Convert them back here
@@ -347,6 +385,8 @@ public class SoftwareKB implements SoftwareAPI {
         }
         valobj = this.kb.createXSDLiteral(mpv.getValue().toString(), prop.getRange());
       }
+      if(valobj == null)
+        continue;
       
       KBObject valholder = this.writerkb.createObjectOfClass(null, holdercls);
       this.writerkb.addPropertyValue(mobj, holderprop, valholder);
@@ -421,7 +461,7 @@ public class SoftwareKB implements SoftwareAPI {
     
     List<String> blacklist = Arrays.asList(
         "hasInput", "hasOutput","hasParameterName", "hasParameter", 
-        "hasValueHolder", "hasProvenance", 
+        "hasValueHolder", "hasProvenance", "hasFileLocation",
         "hasObject", "hasOperator", "hasSecondOperator", "hasQuantity",
         "hasAssumption", "hasStandardName", "hasExtraInformation");
     
@@ -522,11 +562,13 @@ public class SoftwareKB implements SoftwareAPI {
       // Create a temporary kb
       KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
       tkb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true));
-      tkb.importFrom(this.ontologyFactory.getKB(d_onturl, OntSpec.PLAIN, false));
+      tkb.importFrom(this.ontologyFactory.getKB(d_onturl, OntSpec.PLAIN, false, true));
+      tkb.importFrom(this.ontologyFactory.getKB(dataurl, OntSpec.PLAIN, false));
       
       HashMap<String, String> rulePrefixes = new HashMap<String, String>();
       rulePrefixes.put("ts", this.ontns);
-      rulePrefixes.put("data", this.d_onturl+"#");
+      rulePrefixes.put("ds", this.d_onturl+"#");
+      rulePrefixes.put("data", this.dataurl+"#");
       for(String repoid : this.surls.keySet()) {
         rulePrefixes.put(repoid.toLowerCase(),  this.surls.get(repoid) + "#");
         tkb.importFrom(this.skbs.get(repoid));
@@ -768,10 +810,6 @@ public class SoftwareKB implements SoftwareAPI {
   private SWProperty getSWProperty(KBObject propobj, boolean rangeValues) {
     SWProperty prop = new SWProperty(propobj.getID(), this.kb.getLabel(propobj));
     prop.setObjectProperty(this.kb.isObjectProperty(propobj));
-
-    KBObject domain = this.kb.getPropertyDomain(propobj);
-    if(domain != null)
-      prop.setDomain(domain.getID());
     
     // Get range (from non-inference kb -- else we get indirect ranges as well)
     KBObject range = this.kb.getPropertyRange(propobj);
@@ -783,15 +821,15 @@ public class SoftwareKB implements SoftwareAPI {
 
     // Get Property Category (super-property)
     for (KBObject top_propobj : this.kb.getSuperPropertiesOf(propobj, true)) {
-      prop.setCategory(top_propobj.getID());
-      break;
+      prop.addParentId(top_propobj.getID());
     }
     
     if(rangeValues && range != null && prop.isObjectProperty()) {
       // Get Range Values
       KBObject rangecls = this.kb.getConcept(range.getID());
       for (KBObject pvalobj : this.kb.getInstancesOfClass(rangecls, false)) {
-        prop.addPossibleValue(pvalobj.getID());
+        if(!pvalobj.isAnonymous())
+          prop.addPossibleValue(pvalobj.getID());
       }
     }
     return prop;

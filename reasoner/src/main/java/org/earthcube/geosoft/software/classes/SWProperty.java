@@ -7,15 +7,15 @@ public class SWProperty {
   String label;
   boolean isObjectProperty;
   String range;
-  String domain;
   ArrayList<String> possibleValues;
-  String category;
+  ArrayList<String> parentIds;
   String comment;
 
   public SWProperty(String id, String label) {
     this.id = id;
     this.label = label;
     possibleValues = new ArrayList<String>();
+    parentIds = new ArrayList<String>();
   }
 
   public String getId() {
@@ -34,12 +34,12 @@ public class SWProperty {
     this.label = label;
   }
 
-  public String getCategory() {
-    return category;
+  public ArrayList<String> getParentIds() {
+    return parentIds;
   }
 
-  public void setCategory(String category) {
-    this.category = category;
+  public void addParentId(String parentId) {
+    this.parentIds.add(parentId);
   }
 
   public String getRange() {
@@ -48,14 +48,6 @@ public class SWProperty {
 
   public void setRange(String range) {
     this.range = range;
-  }
-
-  public String getDomain() {
-    return domain;
-  }
-
-  public void setDomain(String domain) {
-    this.domain = domain;
   }
 
   public boolean isObjectProperty() {
