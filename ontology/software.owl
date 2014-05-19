@@ -407,14 +407,6 @@
     
 
 
-    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppProperty -->
-
-    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppProperty">
-        <rdfs:comment>{ui: {tabs: true, includes: [&apos;App&apos;]}}</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AssumptionsProperty -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AssumptionsProperty">
@@ -553,8 +545,16 @@
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DescriptionProperty">
         <rdfs:label>Description</rdfs:label>
-        <rdfs:comment>{ ui: {position:0} }</rdfs:comment>
-        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppProperty"/>
+        <rdfs:comment>{ ui: {position:-5} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DescriptionPropertyContainer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DescriptionPropertyContainer -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DescriptionPropertyContainer">
+        <rdfs:comment>{ui: {tabs: true, includes: [&apos;App&apos;, &apos;SoftwareComponent&apos;]}}</rdfs:comment>
     </owl:DatatypeProperty>
     
 

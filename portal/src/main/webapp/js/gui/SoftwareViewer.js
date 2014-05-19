@@ -1112,7 +1112,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 						xtype: 'panel',
 						title: prop.label,
 				        frame:true,
-				        layout: 'form',
+				        layout: (prop.label == "Description" ? 'fit': 'form'),
 				        bodyStyle:'padding:5px',
 				        margin: 5,
 						autoScroll: true,
@@ -1360,6 +1360,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 					item.xtype = 'datefield';
 				else if(prop.label && prop.label.match(/descri/i)) {
 					item.xtype = 'textareafield';
+					item.flex = 1;
 					item.rows = 8;
 				}
 				else 
@@ -1376,7 +1377,11 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 				
 				comp.items.push({
 					xtype: 'panel',
-					layout: 'hbox',
+					//layout: 'hbox',
+					layout: {
+						type: 'hbox',
+						align: 'stretch'
+					},
 					padding: 3,
 					border: false,
 					bodyStyle: 'background:transparent',
