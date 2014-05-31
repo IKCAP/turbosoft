@@ -920,7 +920,7 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
 			type : 'help',
 			tooltip : 'Get Help',
 			handler : function(event, toolEl, panel) {
-				This.showSuggestionsFAQ();
+				showHelp("suggestions");
 			}
 		}],
         width: 600,
@@ -1462,7 +1462,19 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
         defaults: {
             border: false,
             padding: 0
-        }
+        },
+        tabBar : {
+			items : [ {
+				xtype : 'tbfill'
+			}, {
+				xtype : 'tool',
+				type : 'help',
+				tooltip : 'Get Help',
+				handler : function(btn, e) {
+					showHelp('IO');
+				}
+			} ]
+		}
     });
 
     // Register store models
@@ -1613,14 +1625,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
             plugins: plugins,
             bodyCls: bodycls,
             store: gridStore,
-            tbar: tbar,
-			tools : [{
-				type : 'help',
-				tooltip : 'Get Help',
-				handler : function(event, toolEl, panel) {
-					This.showIOFAQ();
-				}
-			}]
+            tbar: tbar
         });
         gridPanel.editorPlugin = editorPlugin;
 
@@ -1662,6 +1667,18 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
         border: false,
         layout: 'auto',
         padding: 0,
+        tabBar : {
+			items : [ {
+				xtype : 'tbfill'
+			}, {
+				xtype : 'tool',
+				type : 'help',
+				tooltip : 'Get Help',
+				handler : function(btn, e) {
+					showHelp('assumptions');
+				}
+			} ]
+		}
     });
 
     var activeTabId = 0;
@@ -1925,13 +1942,6 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
             bodyCls: bodycls,
             store: gridStore,
             tbar: tbar
-			/*tools : [{
-				type : 'help',
-				tooltip : 'Get Help',
-				handler : function(event, toolEl, panel) {
-					This.showAssumptionsFAQ();
-				}
-			}]*/
         });
         
         gridStore.on('add', function() {
@@ -1974,6 +1984,18 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
         border: false,
         layout: 'auto',
         padding: 0,
+        tabBar : {
+			items : [ {
+				xtype : 'tbfill'
+			}, {
+				xtype : 'tool',
+				type : 'help',
+				tooltip : 'Get Help',
+				handler : function(btn, e) {
+					showHelp('standard_names');
+				}
+			} ]
+		}
     });
 
     var activeTabId = 0;
@@ -2346,13 +2368,6 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
             bodyCls: bodycls,
             store: gridStore,
             tbar: tbar
-			/*tools : [{
-				type : 'help',
-				tooltip : 'Get Help',
-				handler : function(event, toolEl, panel) {
-					This.showStandardNamesFAQ();
-				}
-			}]*/
         });
         
         gridStore.on('add', function() {
@@ -2374,72 +2389,6 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
     mainPanel.activeTab = activeTabId;
 
     return mainPanel;
-};
-
-
-SoftwareViewer.prototype.showSuggestionsFAQ = function() {
-	var html = "<ul>"
-		+"<li>What are suggestions? (1)</li>"
-		+"<li>How does the system make suggestions? (2)</li>"
-		+"<li>Can I see the rules that the sytem uses to make suggestions ? (3)</li>"
-		+"</ul>"
-		+"<ol>"
-		+"<li>The system will make suggestions based on what you have specified " +
-				"so far about the software you are describing. These suggestions are " +
-				"meant to save you time </li>" 
-		+"<li>You are interacting with an intelligent system that tries to understand " +
-				"what you have specified so far about the software and reasons about it " +
-				"to make suggestions.  The system has some basic knowledge about how " +
-				"software works, some common concepts in geosciences, and how users " +
-				"describe software.  It combines this basic knowledge together with " +
-				"rules that result in the suggestions that you are shown .</li>"
-		+"<li>The rules that the system uses are codified in mathematical logic. " +
-				"Naturally, you have to learn logic in order to understand them. " +
-				"But if you are really curious, " +
-				"<a href='http://www.isi.edu/ikcap/geosoft/ontology/software.rules'>here is the " +
-				"list of rules</a> </li>"
-		+"</ol>";
-	Ext.create('Ext.window.Window', {
-		title: 'Help',
-		layout: 'border',
-        constrain: true,
-        maximizable: true,
-        autoScroll: true,
-        width: 400,
-        height: 350,
-		html: html,
-		padding: 5
-	}).show();
-};
-
-SoftwareViewer.prototype.showIOFAQ = function() {
-	var html = "<ul>"
-		+"<li>What is an identifier ? (1)</li>"
-		+"<li>Can I use the same identifier for two inputs or for one input " +
-				"and one output of the component ? (2)</li>"
-		+"<li>Are there special characters that should not be used in unique identifiers  ? (3)</li>"
-		+"</ul>"
-		+"<ol>"
-		+"<li>Each input and output of a software component needs a unique way for " +
-				"the system to refer to it.  For example, if you were to define " +
-				"a  program for division, one of the inputs would have the unique " +
-				"identifier 'divisor' and the other input would have an identifier " +
-				"like 'dividend'.  Note that both inputs would have the same type (eg number) </li>" 
-		+"<li>No. The system needs to see unique identifiers for each input and output  .</li>"
-		+"<li>Please only use alphanumeric characters and underscores. Also " +
-				"don't start identifier names with a numeral </li>"
-		+"</ol>";
-	Ext.create('Ext.window.Window', {
-		title: 'Help',
-		layout: 'border',
-        constrain: true,
-        maximizable: true,
-        autoScroll: true,
-        width: 400,
-        height: 350,
-		html: html,
-		padding: 5
-	}).show();
 };
 
 SoftwareViewer.prototype.openNewIconTab = function(tabname, iconCls) {

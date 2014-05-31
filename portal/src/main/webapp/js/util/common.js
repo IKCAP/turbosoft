@@ -190,6 +190,25 @@ function setURLComboListOptions(copts, data, selection, emptyText, editable,
 	return copts;
 }
 
+function showHelp(id) {
+	var url = CONTEXT_ROOT + "/docs/" + id + ".html";
+	Ext.create('Ext.window.Window', {
+		title: 'Help',
+		layout: 'border',
+        constrain: true,
+        maximizable: true,
+        autoScroll: true,
+        width: 600,
+        height: 350,
+		padding: 5,
+		autoLoad: {
+			url: url,
+			timeout: 60,
+			//scripts: false 
+		}
+	}).show();
+};
+
 /*
  * Uncached Cell Editing Allows full flexibility of editors based on record data
  * *WARNING* -- will create a new cell editor for each row !! *WARNING* -- don't

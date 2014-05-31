@@ -547,7 +547,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 				type : 'help',
 				tooltip : 'Get Help',
 				handler : function(event, toolEl, panel) {
-					This.showFAQ();
+					showHelp('inherited_metadata');
 				}
 			}],
             autoHeight: true,
@@ -560,32 +560,6 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     }
     
     tab.add(mainPanel);
-};
-
-DataViewer.prototype.showFAQ = function() {
-	var html = "<ul>"
-		+"<li>What are inherited metadata properties? (1)</li>"
-		+"<li>How can I change inherited metadata properties? (2)</li>"
-		+"</ul>"
-		+"<ol>"
-		+"<li>Metadata properties defined for the parent file types (shown on the folders to the left) " +
-				"are passed on (i.e., 'inherited') to this file type.</li>" 
-		+"<li>To change an inherited metadata property, select the parent type and edit the " +
-				"property there.  When you come back to this type then the change will be shown.</li>"
-		+"</ol>";
-	
-	Ext.create('Ext.window.Window', {
-		title: 'Help',
-		layout: 'border',
-        constrain: true,
-        maximizable: true,
-        autoScroll: true,
-        // autoWidth:true,
-        width: 400,
-        height: 350,
-		html: html,
-		padding: 5
-	}).show();
 };
 
 DataViewer.prototype.confirmAndRenameData = function(node) {
