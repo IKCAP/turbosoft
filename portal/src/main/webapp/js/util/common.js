@@ -195,15 +195,16 @@ function showHelp(id) {
 	Ext.create('Ext.window.Window', {
 		title: 'Help',
 		layout: 'border',
-        constrain: true,
-        maximizable: true,
-        autoScroll: true,
-        width: 600,
-        height: 350,
+		constrain: true,
+		maximizable: true,
+		autoScroll: true,
+		width: 600,
+		height: 350,
 		padding: 5,
 		autoLoad: {
 			url: url,
-			timeout: 60,
+			text: 'Loading..',
+			timeout: 10000,
 			//scripts: false 
 		}
 	}).show();
