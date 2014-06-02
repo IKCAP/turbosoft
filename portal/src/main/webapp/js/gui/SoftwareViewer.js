@@ -748,27 +748,27 @@ SoftwareViewer.prototype.createSoftwareFromForm = function (form, softwareid, cl
 	        	software.standardnames.push(This.prepareRoleRecord(rec.data));
 	        }
 	    });
+	}
 		
-		var fileGrids = form.query('grid[type=filegrid]');
-		for(var j=0; j<fileGrids.length; j++) {
-			var fileGrid = fileGrids[j];
-		    fileGrid.getStore().each(function(rec) {
-		    	var item = This.prepareRoleRecord(rec.data);
-		    	item.type = fileGrid.range;
-		    	var prov = item.provenance;
-		    	var provarr = [];
-		    	for(var ppropid in prov) {
-					if(prov[ppropid])
-						provarr.push({propertyId: ppropid, value: prov[ppropid]});
-				}
-		    	delete item.provenance;
-		    	software.propertyValues.push({
-		    		propertyId: fileGrid.propid, 
-		    		value: item,
-		    		provenance: provarr
-		    	});
-		    });
-		}
+	var fileGrids = form.query('grid[type=filegrid]');
+	for(var j=0; j<fileGrids.length; j++) {
+		var fileGrid = fileGrids[j];
+	    fileGrid.getStore().each(function(rec) {
+	    	var item = This.prepareRoleRecord(rec.data);
+	    	item.type = fileGrid.range;
+	    	var prov = item.provenance;
+	    	var provarr = [];
+	    	for(var ppropid in prov) {
+				if(prov[ppropid])
+					provarr.push({propertyId: ppropid, value: prov[ppropid]});
+			}
+	    	delete item.provenance;
+	    	software.propertyValues.push({
+	    		propertyId: fileGrid.propid, 
+	    		value: item,
+	    		provenance: provarr
+	    	});
+	    });
 	}
 	
 	// Set labels for new ids
@@ -1276,14 +1276,14 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	                text: 'Add',
 	                iconCls: 'addIcon',
 	                handler: function() {
-	                	var filegrid = this.up('grid');
-	                    var gridStore = filegrid.getStore();
+	                	var fgrid = this.up('grid');
+	                    var gridStore = fgrid.getStore();
 	                    var pos = gridStore.getCount();
-	                    if(pos == 1 && !filegrid.pcui.multiple)
+	                    if(pos == 1 && !fgrid.pcui.multiple)
 	                    	return showError('Can only add 1 file here');
 
-	                    var sm = filegrid.getSelectionModel();
-	                    var role = eval("new "+filegrid.proprole+"();");
+	                    var sm = fgrid.getSelectionModel();
+	                    var role = eval("new "+fgrid.proprole+"();");
 	                    editorPlugin.cancelEdit();
 	                    gridStore.insert(pos, role);
 	                    editorPlugin.startEditByPosition({
@@ -1296,10 +1296,10 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	                text: 'Delete',
 	                roletype: i,
 	                handler: function() {
-	                	var filegrid = this.up('grid');
-	                    var gridStore = filegrid.getStore();
+	                	var fgrid = this.up('grid');
+	                    var gridStore = fgrid.getStore();
 	                    editorPlugin.cancelEdit();
-	                    var s = filegrid.getSelectionModel().getSelection();
+	                    var s = fgrid.getSelectionModel().getSelection();
 	                    for (var i = 0, r; r = s[i]; i++) {
 	                        gridStore.remove(r);
 	                    }
