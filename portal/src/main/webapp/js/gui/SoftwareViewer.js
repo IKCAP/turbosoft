@@ -1266,7 +1266,17 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			    filegrid.store = {
 			    	xtype: 'store',
 			        model: proprole,
-			        data: propValues[prop.id]
+			        data: propValues[prop.id],
+			        listeners: {
+			        	update: function() {
+							maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
+			        		savebtn.setDisabled(false);
+			        	}, 
+			        	remove: function(store,records) {
+							maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
+			        		savebtn.setDisabled(false);
+			        	}
+			        }
 			    };
 			    filegrid.pcui = pcui;
 			    filegrid.proprole = proprole;
