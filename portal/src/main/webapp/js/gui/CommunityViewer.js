@@ -27,7 +27,7 @@ CommunityViewer.prototype.getProfileHTML = function(userStore) {
     html += "<div class='profile_image'><img src='"+
     	(userStore.picture ? userStore.picture : default_pic ) + "' " +
     	"onerror='this.style.display = \"none\"'/></div>";
-    html += "<h1>"+(userStore.username ? userStore.username : getLocalName(id))+"</h1>";
+    html += "<h1>"+(userStore.username ? userStore.username : getLocalName(userStore.id))+"</h1>";
     html += "<div class='profile_detail'>Site: <a href='"+userStore.site+"'>"+userStore.site+"</a></div>";
     html += "<div class='profile_detail'>Affiliation: "+userStore.affiliation+"</div>";
     html += "<div class='profile_detail'>Expertise: "+userStore.expertise+"</div>";
