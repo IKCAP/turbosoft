@@ -84,10 +84,9 @@
     </auth-constraint>
   </security-constraint>
   <login-config>
-    <auth-method>BASIC</auth-method>
-    <!--form-login-config>
+    <form-login-config>
       <form-login-page>/jsp/login.jsp</form-login-page>
       <form-error-page>/jsp/login_failed.jsp</form-error-page>
-    </form-login-config-->
+    </form-login-config>
   </login-config>
 </web-app>
