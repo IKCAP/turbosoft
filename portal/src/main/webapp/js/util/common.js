@@ -144,6 +144,7 @@ function getPortalHeader(path) {
 									+ "<li class=\"first active\"><a href=\""+path+"\">Home</a></li>"
 									+ "<li><a href=\""+path+"/software\">Software</a></li>\n"
 									+ "<li><a href=\""+path+"/data\">File Types</a></li>\n"
+									+ "<li><a href=\""+path+"/community\">Community</a></li>\n"
 									+ (USER_ID != 'null' ? "<li style='float:right'><a href=\""
 									+ path
 									+ "/jsp/logout.jsp\">Logout <span class='user'>"+USER_ID+"</span></a></li>" : '')

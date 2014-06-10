@@ -23,6 +23,11 @@ public class CSSLoader {
     showCssTags(out, path, extjs_css);
   }
 
+  public static void loadCommunityViewer(PrintWriter out, String path) {
+    showCssTags(out, path, site_css);
+    showCssTags(out, path, extjs_css);
+  }
+  
   private static void showCssTags(PrintWriter out, String path, String[] css) {
     for (String href : css) {
       out.println("<link rel=\"stylesheet\" href=\"" + path + "/" + href

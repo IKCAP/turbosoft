@@ -96,20 +96,20 @@ public class SoftwareController {
 
       out.println("<script>");
       out.println("var compViewer_" + guid + ";");
-      out.println("Ext.onReady(function() {" 
-          + "compViewer_" + guid + " = new SoftwareViewer('" + guid + "', { " 
+      out.println("Ext.onReady(function() {"
+          + "compViewer_" + guid + " = new SoftwareViewer('" + guid + "', { "
           + " softwares:" + list + ", "
           + " software_types:" + software_types + ", "
-          + " data_types:" + data_types + ", "          
+          + " data_types:" + data_types + ", "
           + " properties:" + props + ", "
           + " sninfo: " + json.toJson(sninfo)
-          + " }, " 
-          + "'" + config.getScriptPath() + "', " 
-          + "'" + this.uploadScript + "', " 
+          + " }, "
+          + "'" + config.getScriptPath() + "', "
+          + "'" + this.uploadScript + "', "
           + "'" + this.domns + "', "
-          + "'" + this.liburl + "', " 
-          + !isSandboxed 
-          + ");\n" 
+          + "'" + this.liburl + "', "
+          + !isSandboxed
+          + ");\n"
           + "compViewer_" + guid + ".initialize();\n" + "});\n");
       out.println("</script>");
 

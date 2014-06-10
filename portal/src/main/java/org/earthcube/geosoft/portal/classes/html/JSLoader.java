@@ -10,6 +10,7 @@ public class JSLoader {
       "js/util/common.js" };
   static String[] software_scripts = { "js/gui/SoftwareViewer.js" };
   static String[] data_scripts = { "js/gui/DataViewer.js" };
+  static String[] community_scripts = { "js/gui/CommunityViewer.js" };
 
   static String[] plupload_scripts = { "js/util/pluploadPanel.js",
       "lib/plupload/plupload.full.min.js" };
@@ -38,6 +39,11 @@ public class JSLoader {
     showScriptTags(out, path, plupload_scripts);
   }
 
+  public static void loadCommunityViewer(PrintWriter out, String path) {
+    showScriptTags(out, path, common_scripts);
+    showScriptTags(out, path, community_scripts);
+  }
+  
   private static void showScriptTags(PrintWriter out, String path,
       String[] scripts) {
     for (String script : scripts) {

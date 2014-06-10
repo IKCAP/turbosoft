@@ -26,6 +26,7 @@ public class Config {
   private String serverUrl;
   private String softwareOntologyUrl;
   private String dataOntologyUrl;
+  private String communityOntologyUrl;
 
   private String defaultStorageDir = ".turbosoft";
   private String ontdirurl = "http://www.isi.edu/ikcap/geosoft/ontology";
@@ -86,6 +87,9 @@ public class Config {
     this.serverUrl = serverConfig.getString("server");
     this.softwareOntologyUrl = serverConfig.getString("ontology.software");
     this.dataOntologyUrl = serverConfig.getString("ontology.data");
+    this.communityOntologyUrl = serverConfig.getString("ontology.community");
+    if(this.communityOntologyUrl == null)
+      this.communityOntologyUrl = ontdirurl + "/community.owl";
     
     this.standardNamesOntologies = new HashMap<String, String>();
     SubnodeConfiguration snconfig = serverConfig.configurationAt("ontology.standard_names");
@@ -151,6 +155,7 @@ public class Config {
     config.addProperty("server", server);
     config.addProperty("ontology.software", ontdirurl + "/software.owl");
     config.addProperty("ontology.data", ontdirurl + "/data.owl");
+    config.addProperty("ontology.community", ontdirurl + "/community.owl");
     
     config.addProperty("ontology.standard_names.CSDMS", ontdirurl + "/CSDMS.owl");
 
@@ -165,6 +170,7 @@ public class Config {
   public Properties getProperties() {
     Properties props = new Properties();
     props.setProperty("lib.software.url", this.userUrl + usep + "software/library.owl");
+    props.setProperty("lib.community.url", this.userUrl + usep + "community/library.owl");
     props.setProperty("lib.domain.data.url", this.userUrl + usep + "data/library.owl");
     props.setProperty("ont.domain.data.url", this.userUrl + usep + "data/ontology.owl");
     props.setProperty("lib.domain.data.storage", this.userDir + fsep + "data");
@@ -172,6 +178,7 @@ public class Config {
     props.setProperty("rules.software.url", ontdirurl + "/software.rules");
     props.setProperty("ont.software.url", this.softwareOntologyUrl);
     props.setProperty("ont.data.url", this.dataOntologyUrl);
+    props.setProperty("ont.community.url", this.communityOntologyUrl);
 
     props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
     return props;
@@ -193,6 +200,14 @@ public class Config {
     this.dataOntologyUrl = dataOntologyUrl;
   }
 
+  public String getCommunityOnologyUrl() {
+    return this.communityOntologyUrl;
+  }
+
+  public void setCommunityOnologyUrl(String communityOnologyUrl) {
+    this.communityOntologyUrl = communityOnologyUrl;
+  }
+  
   public String getConfigFile() {
     return configFile;
   }
