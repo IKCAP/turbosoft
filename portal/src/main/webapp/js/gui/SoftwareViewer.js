@@ -833,6 +833,44 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
 			});
 		}
 	}
+    for(var i=0; i<newsoftware.assumptions.length; i++) {
+    	var newass = newsoftware.assumptions[i];
+    	var newone = true;
+    	for(var j=0; j<software.assumptions.length; j++) {
+    		var ass = software.assumptions[j];
+    		if(newass.id == ass.id) {
+    			newone = false;
+    			break;
+    		}
+    	}
+    	if(newone) {
+    		changes.push({
+    			propid : "_#Assumption",
+    			oldval : '',
+    			newval : newass.id,
+    			newdata : newass
+    		});
+    	}
+	}
+    for(var i=0; i<newsoftware.standardnames.length; i++) {
+    	var newsn = newsoftware.standardnames[i];
+    	var newone = true;
+    	for(var j=0; j<software.standardnames.length; j++) {
+    		var sn = software.standardnames[j];
+    		if(newsn.label == sn.label) {
+    			newone = false;
+    			break;
+    		}
+    	}
+    	if(newone) {
+    		changes.push({
+    			propid : "_#StandardName",
+    			oldval : '',
+    			newval : newsn.id,
+    			newdata : newsn
+    		});
+    	}
+	}
 	return changes;
 };
 
@@ -863,14 +901,17 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
 		    	}
 		    },
 		    { text: 'Suggested content', dataIndex: 'newval',
-		    	renderer: function(v) {
+		    	renderer: function(v, b, rec) {
 		    		if(v == "") return "-";
+		    		if(rec.data.propid == "_#Assumption"
+		    			|| rec.data.propid == "_#StandardName")
+		    			return rec.get('newdata').label;
 		    		return v;
 		    	}
 		    }
 		],
 		store: {
-			fields: ['propid', 'oldval', 'newval'],
+			fields: ['propid', 'oldval', 'newval', 'newdata'],
 			data: changes
 		},
         tbar: [{
@@ -891,15 +932,34 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
                     var rec = recs[i];
                     var propid = rec.get('propid');
                     var newval = rec.get('newval');
-                    var field = form.getForm().findField(propid);
-                    field.setValue(newval);
-                    field.provenance = {};
-                    field.provenance[This.ns[''] + "isInferred"] = true;
-                    field.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
-                    field.setFieldStyle(This.getProvenanceStyle(field.provenance));
-                    
-					var infolabel = field.nextSibling('label');
-					infolabel.setText(This.getProvenanceHtml(field.provenance), false);
+                    if(propid == "_#Assumption") {
+                    	var assGrids = form.query('grid[type=assumptions]');
+                    	var ass = rec.get('newdata');
+                    	for(var j=0; j<assGrids.length; j++) {
+                    		var assGrid = assGrids[j];
+                    		if(assGrid.repons == getNamespace(newval))
+                    			assGrid.getStore().add(ass);
+                    	}
+                	}
+                    else if(propid == "_#StandardName") {
+                    	var snGrids = form.query('grid[type=standardnames]');
+                    	var sn = rec.get('newdata');
+                    	for(var j=0; j<snGrids.length; j++) {
+                    		var snGrid = snGrids[j];
+                    		if(snGrid.repons == getNamespace(newval))
+                    			snGrid.getStore().add(sn);
+                    	}
+                	}
+                    else {
+	                    var field = form.getForm().findField(propid);
+	                    field.setValue(newval);
+	                    field.provenance = {};
+	                    field.provenance[This.ns[''] + "isInferred"] = true;
+	                    field.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
+	                    field.setFieldStyle(This.getProvenanceStyle(field.provenance));
+						var infolabel = field.nextSibling('label');
+						infolabel.setText(This.getProvenanceHtml(field.provenance), false);
+                    }
 					
                     mygrid.getStore().remove(rec);
                 }
@@ -1432,9 +1492,12 @@ SoftwareViewer.prototype.getProvenanceCreationHtml = function(provenance) {
 	if(provenance) {
 		var xns = this.ns[''];
 		var eby = provenance[xns+'editedBy'];
+		var inf = provenance[xns+'isInferred'];
 		var ts = provenance[xns+'timestamp'];
 		if(eby)
 			info += "By <b>"+eby+"</b>";
+		else if(inf)
+			info += "<b style='color:brown'>Turbosoft Suggestion"+"</b>";
 		if(ts)
 			info += " on " + Ext.Date.format(new Date(ts), 'F j Y, g:ia');
 	}
