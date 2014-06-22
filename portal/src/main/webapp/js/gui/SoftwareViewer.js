@@ -2705,7 +2705,19 @@ SoftwareViewer.prototype.initialize = function() {
         layout: {
             type: 'border'
         },
-        items: [leftPanel, this.tabPanel]
+        items: [leftPanel, this.tabPanel],
+        listeners: {
+        	afterrender: function() {
+        		if(window.top.location.hash) {
+        			var comp = window.top.location.hash.replace("#", "");
+        			var softwareid = This.ns['lib'] + comp;
+        			var tnode = This.treePanel.getStore().getNodeById(softwareid);
+        			if(tnode) {
+        				This.treePanel.fireEvent("itemclick", This.treePanel, tnode);
+        			}
+        		}
+        	}
+        }
     });
     this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
     return this.mainPanel;
