@@ -75,7 +75,7 @@
       <url-pattern>/upload/*</url-pattern>
       <url-pattern>/software/*</url-pattern>
       <url-pattern>/data/*</url-pattern>
-      <url-pattern>/sparql/*</url-pattern>
+      <!--url-pattern>/sparql/*</url-pattern-->
       <url-pattern>/export/*</url-pattern>
       <url-pattern>/community/*</url-pattern>
     </web-resource-collection>
