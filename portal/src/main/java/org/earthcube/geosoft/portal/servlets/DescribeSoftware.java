@@ -55,25 +55,23 @@ public class DescribeSoftware extends HttpServlet {
 		}
 
 		int guid = 1;
-		SoftwareController mc;
-		synchronized(WriteLock.Lock) {
-			mc = new SoftwareController(guid, config);
-		}
-		String softwareid = request.getParameter("softwareid");
-		
-		PrintWriter out = response.getWriter();
-		if (op == null || op.equals("")) {
-			response.setContentType("text/html");
-			mc.show(out);
-			return;
-		} else if (op.equals("getSoftwareJSON")) {
-			out.print(mc.getSoftwareJSON(softwareid));
-		} else if (op.equals("getSoftwareTypeJSON")) {
-		  String typeid = request.getParameter("typeid");
-      out.print(mc.getSoftwareTypeJSON(typeid));
-    }
 		
 		synchronized(WriteLock.Lock) {
+		  SoftwareController mc = new SoftwareController(guid, config);
+  		String softwareid = request.getParameter("softwareid");
+  		
+  		PrintWriter out = response.getWriter();
+  		if (op == null || op.equals("")) {
+  			response.setContentType("text/html");
+  			mc.show(out);
+  			return;
+  		} else if (op.equals("getSoftwareJSON")) {
+  			out.print(mc.getSoftwareJSON(softwareid));
+  		} else if (op.equals("getSoftwareTypeJSON")) {
+  		  String typeid = request.getParameter("typeid");
+        out.print(mc.getSoftwareTypeJSON(typeid));
+      }
+		
 			if (op.equals("saveSoftwareJSON")) {
 				String software_json = request.getParameter("software_json");
 				if (!config.isSandboxed())
