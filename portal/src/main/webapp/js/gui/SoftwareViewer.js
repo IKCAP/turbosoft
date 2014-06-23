@@ -863,10 +863,10 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
 	}
     for(var i=0; i<newsoftware.assumptions.length; i++) {
     	var newass = newsoftware.assumptions[i];
+		if(!newass.id) continue;
     	var newone = true;
     	for(var j=0; j<software.assumptions.length; j++) {
     		var ass = software.assumptions[j];
-    		if(!ass.id) continue;
     		if(newass.id == ass.id) {
     			newone = false;
     			break;
@@ -883,10 +883,10 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
 	}
     for(var i=0; i<newsoftware.standardnames.length; i++) {
     	var newsn = newsoftware.standardnames[i];
+		if(!newsn.label) continue;
     	var newone = true;
     	for(var j=0; j<software.standardnames.length; j++) {
     		var sn = software.standardnames[j];
-    		if(!sn.label) continue;
     		if(newsn.label == sn.label) {
     			newone = false;
     			break;
