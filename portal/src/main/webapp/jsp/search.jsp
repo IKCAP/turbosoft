@@ -69,6 +69,24 @@
 				$(event.target).removeClass( "emptyprompt" );
 			}
 		});
+        $(document).on("blur", ".advinput, .advoutput", function(event) {
+            if ($(event.target).val().trim().length == 0) {
+                $(event.target).val("mimetype");
+                $(event.target).addClass( "emptyprompt" );
+            }
+        });
+        $(document).on("blur", ".advstandardname_obj", function(event) {
+            if ($(event.target).val().trim().length == 0) {
+                $(event.target).val("object");
+                $(event.target).addClass( "emptyprompt" );
+            }
+        });
+        $(document).on("blur", ".advstandardname_qty", function(event) {
+            if ($(event.target).val().trim().length == 0) {
+                $(event.target).val("quantity");
+                $(event.target).addClass( "emptyprompt" );
+            }
+        });
 		$(document).on("click", ".advinput_line a", function( event ) {
 			event.target.parentNode.remove();
 			update_advinput(null);
@@ -139,10 +157,6 @@
 			update_advq();
 		});
 		function update_advinput(event) {
-			if ((null != event) && ($(event.target).val().trim().length == 0)) {
-				$(event.target).val("mimetype");
-				$(event.target).addClass( "emptyprompt" );
-			}
 			var q = "";
 			$( ".advinput" ).each(function(index, element) {
 				var qq = $(element).val().trim();
@@ -154,10 +168,6 @@
 		}
 		$(document).on("change", ".advinput", function(event) { update_advinput(event); });
 		function update_advoutput(event) {
-			if ((null != event) && ($(event.target).val().trim().length == 0)) {
-				$(event.target).val("mimetype");
-				$(event.target).addClass( "emptyprompt" );
-			}
 			var q = "";
 			$( ".advoutput" ).each(function(index, element) {
 				var qq = $(element).val().trim();
@@ -169,11 +179,6 @@
 		}
 		$(document).on("change", ".advoutput", function(event) { update_advoutput(event); });
 		function update_advstandardname(event) {
-			if ((null != event) && ($(event.target).val().trim().length == 0)) {
-				if ($(event.target).hasClass(".advstandardname_obj")) $(event.target).val("object");
-				else $(event.target).val("quantity");
-				$(event.target).addClass( "emptyprompt" );
-			}
 			var q = "";
 			$( ".advstandardname_line" ).each(function(index, element) {
 				var qq_obj = $(element).children( ".advstandardname_obj" ).val().trim();
