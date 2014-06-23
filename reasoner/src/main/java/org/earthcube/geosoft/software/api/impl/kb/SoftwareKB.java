@@ -762,12 +762,11 @@ public class SoftwareKB implements SoftwareAPI {
           if (pathMat != null && pathMat.find()) {
             if(!pathMat.group().trim().matches(".*\\\\[nt].*"))
               output+="Absolute path, "+Integer.toString(counter)+", "+pathMat.group().trim()+
-                ", "+"Try to avoid absolute paths, maybe create an output parameter"+"|";
+                ", "+"Try creating a local path, or an input parameter for the output path"+"|";
           }
           if (comMat!=null && comMat.find()) {
             output+="Command Line, "+Integer.toString(counter)+", "+comMat.group().trim()+
-                ", "+"Try a local path, or create an input parameter with the output path "
-                    + "with other operating systems"+"|";
+                ", "+"Try using \"dir\" to enumerate files"+"|";
           }
           counter++;
 
