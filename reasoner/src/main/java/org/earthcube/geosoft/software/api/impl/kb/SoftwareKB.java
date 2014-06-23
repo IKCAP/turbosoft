@@ -762,7 +762,7 @@ public class SoftwareKB implements SoftwareAPI {
           if (pathMat != null && pathMat.find()) {
             if(!pathMat.group().trim().matches(".*\\\\[nt].*"))
               output+="Absolute path, "+Integer.toString(counter)+", "+pathMat.group().trim()+
-              ", "+"Try creating a local path, or an input parameter for the output path"+"|";
+                ", "+"Try creating a local path, or an input parameter for the output path"+"|";
           }
           if (comMat!=null && comMat.find()) {
             output+="Command Line, "+Integer.toString(counter)+", "+comMat.group().trim()+
