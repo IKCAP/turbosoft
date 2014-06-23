@@ -25,6 +25,7 @@ import com.hp.hpl.jena.update.UpdateFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 import org.earthcube.geosoft.portal.classes.Config;
+import org.earthcube.geosoft.portal.classes.WriteLock;
 
 /**
  * Servlet implementation class SparqlEndpoint
@@ -61,17 +62,18 @@ public class SparqlEndpoint extends HttpServlet {
 					+ "</form>");
 			return;
 		}
-		
-		try {
-			if(queryString != null && !queryString.equals(""))
-				this.showQueryResults(queryString, request, response);
-			else if(updateString != null && !updateString.equals(""))
-				this.updateDataset(updateString, request, response);
+		synchronized (WriteLock.Lock) {
+  		try {
+  			if(queryString != null && !queryString.equals(""))
+  				this.showQueryResults(queryString, request, response);
+  			else if(updateString != null && !updateString.equals(""))
+  				this.updateDataset(updateString, request, response);
+  		}
+  		catch (Exception e) {
+  			response.getOutputStream().print(e.getMessage());
+  		}
+  		response.getOutputStream().flush();
 		}
-		catch (Exception e) {
-			response.getOutputStream().print(e.getMessage());
-		}
-		response.getOutputStream().flush();
 	}
 
 	private void showQueryResults(String queryString, HttpServletRequest request, HttpServletResponse response) 

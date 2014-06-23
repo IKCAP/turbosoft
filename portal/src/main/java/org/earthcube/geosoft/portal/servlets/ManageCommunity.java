@@ -52,25 +52,22 @@ public class ManageCommunity extends HttpServlet {
       
       int guid = 1;
 
-      CommunityController uc;
       synchronized (WriteLock.Lock) {
-        uc = new CommunityController(guid, config);
-      }
+        CommunityController uc = new CommunityController(guid, config);
 
-      String userid = request.getParameter("userid");
-
-      PrintWriter out = response.getWriter();
-      // Reader functions
-      if (op == null || op.equals("")) {
-        response.setContentType("text/html");
-        uc.show(out);
-        return;
-      } else if (op.equals("getUserJSON")) {
-        out.println(uc.getUserJSON(userid));
-      }
+        String userid = request.getParameter("userid");
+  
+        PrintWriter out = response.getWriter();
+        // Reader functions
+        if (op == null || op.equals("")) {
+          response.setContentType("text/html");
+          uc.show(out);
+          return;
+        } else if (op.equals("getUserJSON")) {
+          out.println(uc.getUserJSON(userid));
+        }
       
-      // Writer functions
-      synchronized (WriteLock.Lock) {
+        // Writer functions
         if (op.equals("saveUserJSON")) {
           String uservals_json = request.getParameter("json");
           if (uc.saveUserJSON(userid, uservals_json))

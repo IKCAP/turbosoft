@@ -70,34 +70,31 @@ public class ManageData extends HttpServlet {
 		
 		int guid = 1;
 
-		DataController dv;
 		synchronized (WriteLock.Lock) {
-			dv = new DataController(guid, config);
-		}
+		  DataController dv = new DataController(guid, config);
 
-		String dtype = request.getParameter("data_type");
-		String dataid = request.getParameter("data_id");
-		if (op != null && op.equals("fetch")) {
-			dv.streamData(dataid, response, this.getServletContext());
-			return;
-		}
-
-		PrintWriter out = response.getWriter();
-		// Reader functions
-		if (op == null || op.equals("")) {
-			response.setContentType("text/html");
-			dv.show(out);
-			return;
-		} else if (op.equals("getDataJSON")) {
-			out.println(dv.getDataJSON(dataid));
-		} else if (op.equals("getDataTypeJSON")) {
-			out.println(dv.getDatatypeJSON(dtype));
-		} else if (op.equals("getDataHierarchyJSON")) {
-			out.println(dv.getDataHierarchyJSON());
-		}
+  		String dtype = request.getParameter("data_type");
+  		String dataid = request.getParameter("data_id");
+  		if (op != null && op.equals("fetch")) {
+  			dv.streamData(dataid, response, this.getServletContext());
+  			return;
+  		}
+  
+  		PrintWriter out = response.getWriter();
+  		// Reader functions
+  		if (op == null || op.equals("")) {
+  			response.setContentType("text/html");
+  			dv.show(out);
+  			return;
+  		} else if (op.equals("getDataJSON")) {
+  			out.println(dv.getDataJSON(dataid));
+  		} else if (op.equals("getDataTypeJSON")) {
+  			out.println(dv.getDatatypeJSON(dtype));
+  		} else if (op.equals("getDataHierarchyJSON")) {
+  			out.println(dv.getDataHierarchyJSON());
+  		}
 		
-		// Writer functions
-		synchronized (WriteLock.Lock) {
+  		// Writer functions
 			if (op.equals("saveDataJSON")) {
 				String propvals_json = request.getParameter("propvals_json");
 				if (dv.saveDataJSON(dataid, propvals_json))
