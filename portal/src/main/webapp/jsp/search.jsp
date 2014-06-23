@@ -186,8 +186,8 @@
 				var b_obj = (qq_obj.length > 0) && ("object" != qq_obj);
 				var b_qty = (qq_qty.length > 0) && ("quantity" != qq_qty);
 				if ( b_obj && b_qty) q += " AND standardnames:\"" + qq_obj + " " + qq_qty + "\"";
-				else if (b_obj) q += " AND standardnames:" + qq_obj;
-				else if (b_qty) q += " AND standardnames:" + qq_qty;
+				else if (b_obj) q += " AND standardnames:\"" + qq_obj + "\"";
+				else if (b_qty) q += " AND standardnames:\"" + qq_qty + "\"";
 			});
 			if (q.length > 0) q = q.substring(5);
 			$( "#advstandardname_q" ).val(q); 
