@@ -142,7 +142,26 @@ public class SoftwareController {
     try {
       Software software = json.fromJson(software_json, Software.class);
       Software nsoftware = this.api.getInferredSoftware(software);
+      // Check for Tika detected mimetypes
+      String tikaUrl = this.config.getMiscPropertyValue("tikaUrl");
+      if(tikaUrl != null)
+        nsoftware = this.api.getTikaInferredSoftware(nsoftware, tikaUrl);
       return json.toJson(nsoftware);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    } finally {
+      api.end();
+    }
+  }
+  
+  public String checkCode(String id) {
+    if (this.api == null) 
+      return null;
+    
+    try {
+      String results = this.api.checkCode(id);
+      return json.toJson(results);
     } catch (Exception e) {
       e.printStackTrace();
       return null;

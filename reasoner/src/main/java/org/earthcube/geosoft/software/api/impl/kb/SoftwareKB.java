@@ -1,13 +1,20 @@
 package org.earthcube.geosoft.software.api.impl.kb;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.earthcube.geosoft.software.api.SoftwareAPI;
@@ -52,7 +59,7 @@ public class SoftwareKB implements SoftwareAPI {
 
   protected HashMap<String, KBObject> objPropMap;
   protected HashMap<String, KBObject> dataPropMap;
-  protected HashMap<String, KBObject> conceptMap;
+  //protected HashMap<String, KBObject> conceptMap;
   protected HashMap<String, SWProperty> provProps;
 
   protected ArrayList<KBTriple> domainKnowledge;
@@ -110,15 +117,15 @@ public class SoftwareKB implements SoftwareAPI {
   private void initializeMaps(KBAPI kb) {
     this.objPropMap = new HashMap<String, KBObject>();
     this.dataPropMap = new HashMap<String, KBObject>();
-    this.conceptMap = new HashMap<String, KBObject>();
+    //this.conceptMap = new HashMap<String, KBObject>();
     this.provProps = new HashMap<String, SWProperty>();
 
     for (KBObject prop : kb.getAllObjectProperties()) {
       this.objPropMap.put(prop.getName(), prop);
     }
-    for (KBObject con : kb.getAllClasses()) {
+    /*for (KBObject con : kb.getAllClasses()) {
       this.conceptMap.put(con.getName(), con);
-    }
+    }*/
     for (KBObject odp : kb.getAllDatatypeProperties()) {
       this.dataPropMap.put(odp.getName(), odp);
     }
@@ -619,6 +626,161 @@ public class SoftwareKB implements SoftwareAPI {
       e.printStackTrace();
     }
     return null;
+  }
+  
+  @Override
+  public Software getTikaInferredSoftware(Software software, String tikaUrl) {
+    try {
+      HashMap<String, Boolean> roleids = new HashMap<String, Boolean>();
+      for(SoftwareRole role : software.getInputs())
+        roleids.put(role.getID(), true);
+      for(SoftwareRole role : software.getOutputs())
+        roleids.put(role.getID(), true);
+      
+      // FIXME: This is a bit hackish right now
+      // - Change to use a proper Tika API ?
+      // - Check Data Catalog for FileType to Mime conversion ?
+      for(SWPropertyValue mpv : software.getPropertyValues()) {
+        if(mpv.getPropertyId().equals(this.ontns+"UnitTestFile")) {
+          if(mpv.getValue() instanceof HashMap) {
+            // If value is a complex gson object
+            @SuppressWarnings("rawtypes")
+            HashMap map = (HashMap) mpv.getValue();
+            String identifier = (String) map.get("forParameter");
+            String roleid = software.getID() + "_" + KBUtils.sanitizeID(identifier);
+            if(roleids.containsKey(roleid))
+              continue;
+            
+            String floc = (String) map.get("hasFileLocation");
+            String note = (String) map.get("Note");
+            String fname = floc.substring( floc.lastIndexOf('/')+1, floc.length() );
+            
+            // FIXME: Get this from a config property
+            URL tika = new URL(tikaUrl);
+            URL furl = new URL(floc);
+            
+            HttpURLConnection tikaCon = (HttpURLConnection) tika.openConnection();
+            HttpURLConnection fcon = (HttpURLConnection) furl.openConnection();
+            
+            tikaCon.setDoOutput(true);
+            tikaCon.setRequestMethod("PUT");
+            tikaCon.setRequestProperty("Content-Disposition", "attachment;filename="+fname);
+            OutputStreamWriter tikaOut = new OutputStreamWriter(tikaCon.getOutputStream());
+            
+            BufferedReader freader = new BufferedReader(new InputStreamReader(fcon.getInputStream()));
+            String line = "";
+            while((line=freader.readLine()) != null) {
+              tikaOut.write(line);
+            }
+            tikaOut.close();
+            InputStream is = tikaCon.getInputStream();
+            BufferedReader tikareader = new BufferedReader(new InputStreamReader(is));
+            
+            // Just use the last
+            line = "";
+            String mime = null;
+            while((line = tikareader.readLine()) != null) {
+              if(mime == null)
+                mime = line;
+            }
+            tikareader.close();
+            is.close();
+            
+            if(mime == null)
+              return null;
+            
+            String iotype = mime.split("/")[1];
+            // Check iotype id
+            KBObject iocls = this.kb.getConcept(this.dataurl + "#" + iotype);
+            if(iocls == null)
+              iocls = this.kb.getConcept(this.d_onturl + "#" + iotype);
+            if(iocls == null)
+              continue;
+            
+            SoftwareRole role = new SoftwareRole(roleid);
+            role.setRoleName(identifier);
+            role.setType(iocls.getID());
+            role.setLabel(identifier);
+            
+            if(note != null && note.toLowerCase().contains("output")) {
+              software.addOutput(role);
+              software.addExplanation("[TIKA] Adding output "+identifier+" for mime-type "+mime);
+            }
+            else {
+              software.addInput(role);
+              software.addExplanation("[TIKA] Adding input "+identifier+" for mime-type "+mime);
+            }
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return software;
+  }
+  
+  @Override
+  public String checkCode(String id) {
+    Software software = this.getSoftware(id, true);
+    List<SWPropertyValue> list = software.getPropertyValues();
+    String codeurl=null;
+    Pattern numberPat = Pattern.compile("\\s*[\\w]+?\\s*=\\s*([\\d\\.]+)[;\\s]");
+    Pattern stringPat = Pattern.compile("\\s*([\\w]+?)\\s*=\\s*([\"\'][\\w\\s]+[\"\'])\\s*");
+    Pattern pathPat = Pattern.compile("[\"\'].*\\w*[\\\\/]\\w*(?:\\.\\w+)?[\"\']");
+    Pattern commandPat = Pattern.compile(".*\\sls");
+    for (SWPropertyValue prop : list) {
+      if (prop.getPropertyId().contains("CodeFile")) {
+        codeurl=prop.getValue().toString().split("=")[1].split(",")[0];
+      }
+    }
+    String output="";
+    if (codeurl!=null) {
+      try {
+        URL code = new URL(codeurl);
+        BufferedReader in = new BufferedReader(new InputStreamReader(code.openStream()));
+        String inputLine;
+        Matcher numMat = null;
+        Matcher strMat = null;
+        Matcher pathMat = null;
+        Matcher comMat = null;
+        int counter=0;
+        while ((inputLine = in.readLine()) != null) {
+          //System.out.println(inputLine);
+          numMat = numberPat.matcher(inputLine);
+          strMat = stringPat.matcher(inputLine);
+          pathMat = pathPat.matcher(inputLine);
+          comMat = commandPat.matcher(inputLine);
+          if (numMat!=null && numMat.find()) {
+            output+="Hardcoded variable, "+Integer.toString(counter)+", "+numMat.group().trim()+
+                ", "+"This might be better as an input parameter"+"|";
+          }
+          if (strMat != null && strMat.find()) {
+            output+="Hardcoded variable, "+Integer.toString(counter)+", "+strMat.group().trim()+
+                ", "+"This might be better as an input parameter"+"|";
+          }
+          if (pathMat != null && pathMat.find()) {
+            if(!pathMat.group().trim().matches(".*\\\\[nt].*"))
+              output+="Absolute path, "+Integer.toString(counter)+", "+pathMat.group().trim()+
+                ", "+"Try to avoid absolute paths, maybe create an output parameter"+"|";
+          }
+          if (comMat!=null && comMat.find()) {
+            output+="Command Line, "+Integer.toString(counter)+", "+comMat.group().trim()+
+                ", "+"Try a local path, or create an input parameter with the output path "
+                    + "with other operating systems"+"|";
+          }
+          counter++;
+
+        }
+        in.close();
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        return null;
+      }
+      //Open file, analyze, return results
+    }
+    return output;
   }
   
   /*

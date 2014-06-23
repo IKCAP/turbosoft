@@ -81,6 +81,10 @@ public interface SoftwareAPI {
   // Reasoning
   Software getInferredSoftware(Software software);
   
+  Software getTikaInferredSoftware(Software software, String tikaUrl);
+  
+  String checkCode(String id);
+  
   // Saving
   boolean save();
 

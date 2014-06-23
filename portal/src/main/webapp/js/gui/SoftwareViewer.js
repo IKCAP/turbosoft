@@ -497,6 +497,34 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         }
     });
     
+	var checkbtn = new Ext.Button({
+		text: 'Check code',
+		iconCls: 'inferIcon',
+		handler: function() {
+			var form = tab.down('form');
+			Ext.get(This.tabPanel.getId()).mask("Checking Code...");
+			Ext.Ajax.request({
+				url : This.op_url+'/checkCode',
+				params: {
+					softwareid: id
+					//codelocation: 
+				},
+				success: function(response) {
+					Ext.get(This.tabPanel.getId()).unmask();
+					if(response.responseText) {
+						var checkResults = Ext.decode(response.responseText);
+						This.checkCodeResults(checkResults, form);
+						// TODO: show response
+					}
+				},
+				failure: function(response) {
+					Ext.get(This.tabPanel.getId()).unmask();
+					_console(response.responseText);
+				}
+			});
+		}
+	});
+	
     var inferbtn = new Ext.Button({
         text: 'Make suggestions',
         iconCls: 'inferIcon',
@@ -536,7 +564,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
-        tbar: editable ? [ inferbtn, savebtn ] : null,
+        tbar: editable ? [ inferbtn, checkbtn, savebtn ] : null,
         layout: 'fit',
         //tbar: tbar,
         bodyStyle: editable ? '' : 'background-color:#ddd',
@@ -838,6 +866,7 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
     	var newone = true;
     	for(var j=0; j<software.assumptions.length; j++) {
     		var ass = software.assumptions[j];
+    		if(!ass.id) continue;
     		if(newass.id == ass.id) {
     			newone = false;
     			break;
@@ -857,6 +886,7 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
     	var newone = true;
     	for(var j=0; j<software.standardnames.length; j++) {
     		var sn = software.standardnames[j];
+    		if(!sn.label) continue;
     		if(newsn.label == sn.label) {
     			newone = false;
     			break;
@@ -868,6 +898,44 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
     			oldval : '',
     			newval : newsn.id,
     			newdata : newsn
+    		});
+    	}
+	}
+    for(var i=0; i<newsoftware.inputs.length; i++) {
+    	var newrole = newsoftware.inputs[i];
+    	var newone = true;
+    	for(var j=0; j<software.inputs.length; j++) {
+    		var role = software.inputs[j];
+    		if(newrole.id == role.id) {
+    			newone = false;
+    			break;
+    		}
+    	}
+    	if(newone) {
+    		changes.push({
+    			propid : "_#Input",
+    			oldval : '',
+    			newval : newrole.id,
+    			newdata : newrole
+    		});
+    	}
+	}
+    for(var i=0; i<newsoftware.outputs.length; i++) {
+    	var newrole = newsoftware.outputs[i];
+    	var newone = true;
+    	for(var j=0; j<software.outputs.length; j++) {
+    		var role = software.outputs[j];
+    		if(newrole.id == role.id) {
+    			newone = false;
+    			break;
+    		}
+    	}
+    	if(newone) {
+    		changes.push({
+    			propid : "_#Output",
+    			oldval : '',
+    			newval : newrole.id,
+    			newdata : newrole
     		});
     	}
 	}
@@ -903,8 +971,7 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
 		    { text: 'Suggested content', dataIndex: 'newval',
 		    	renderer: function(v, b, rec) {
 		    		if(v == "") return "-";
-		    		if(rec.data.propid == "_#Assumption"
-		    			|| rec.data.propid == "_#StandardName")
+		    		if(rec.data.propid.substring(0,2) == "_#")
 		    			return rec.get('newdata').label;
 		    		return v;
 		    	}
@@ -949,6 +1016,16 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
                     		if(snGrid.repons == getNamespace(newval))
                     			snGrid.getStore().add(sn);
                     	}
+                	}
+                    else if(propid == "_#Input") {
+                    	var rolegrid = form.down('grid[type=input]');
+                    	var role = rec.get('newdata');
+                    	rolegrid.getStore().add(role);
+                	}
+                    else if(propid == "_#Output") {
+                    	var rolegrid = form.down('grid[type=output]');
+                    	var role = rec.get('newdata');
+                    	rolegrid.getStore().add(role);
                 	}
                     else {
 	                    var field = form.getForm().findField(propid);
@@ -1040,6 +1117,43 @@ SoftwareViewer.prototype.getExplanationGrid = function(data) {
         }),
         });
     return exp;
+};
+
+SoftwareViewer.prototype.checkCodeResults = function (results, form) { 
+	var This = this;
+	var vals=[];
+	var res=results.split("|");
+	for (i=0; i<res.length-1; i++) {
+		var entries=res[i].split(",");
+		vals.push({
+			check : entries[0],
+			linenum : entries[1],
+			instance : entries[2],
+			suggest : entries[3]
+		});
+	}
+	Ext.create('Ext.window.Window', {
+		title: 'Code Check',
+		height: 400,
+		width: 900,
+		layout: 'fit',
+		autoScroll: true,
+
+		items: {
+			xtype: 'grid',
+			border: false,
+			columns: [
+			          { text: 'Warning', dataIndex: 'check', width: 100, flex: 2},
+			          { text: 'Line Number', dataIndex: 'linenum', width: 100, flex: 1},
+			          { text: 'Instance', dataIndex: 'instance', flex: 3},
+			          { text: 'Suggestion', dataIndex: 'suggest', flex:4}
+			          ],
+			          store: {
+			        	  fields: ['check', 'linenum', 'instance', 'suggest'],
+			        	  data: vals
+			          },
+		}
+	}).show();
 };
 
 SoftwareViewer.prototype.getSuperClasses = function(clsid, clsnode, supers) {

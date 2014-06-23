@@ -27,7 +27,8 @@ public class Config {
   private String softwareOntologyUrl;
   private String dataOntologyUrl;
   private String communityOntologyUrl;
-
+  private HashMap<String, String> miscProperties;
+  
   private String defaultStorageDir = ".turbosoft";
   private String ontdirurl = "http://www.isi.edu/ikcap/geosoft/ontology";
   
@@ -99,6 +100,15 @@ public class Config {
       String snrepo = it.next();
       String snurl = snconfig.getString(snrepo);
       this.standardNamesOntologies.put(snrepo,  snurl);
+    }
+    
+    this.miscProperties = new HashMap<String, String>();
+    SubnodeConfiguration misc = serverConfig.configurationAt("misc");
+    for(@SuppressWarnings("unchecked")
+    Iterator<String> it = misc.getKeys(); it.hasNext(); ) {
+      String key = it.next();
+      String value = misc.getString(key);
+      this.miscProperties.put(key,  value);
     }
   }
 
@@ -326,5 +336,21 @@ public class Config {
 
   public void setStandardNamesOntologies(HashMap<String, String> standardNamesOntologies) {
     this.standardNamesOntologies = standardNamesOntologies;
+  }
+
+  public HashMap<String, String> getMiscProperties() {
+    return miscProperties;
+  }
+
+  public String getMiscPropertyValue(String key) {
+    return miscProperties.get(key);
+  }
+  
+  public void setMiscProperties(HashMap<String, String> miscProperties) {
+    this.miscProperties = miscProperties;
+  }
+  
+  public void addMiscPropertyValue(String key, String value) {
+    this.miscProperties.put(key, value);
   }
 }

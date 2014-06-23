@@ -87,6 +87,11 @@ public class DescribeSoftware extends HttpServlet {
         String software_json = request.getParameter("software_json");
         if (!config.isSandboxed())
           out.print(mc.getInferredSoftware(softwareid, software_json));
+      } else if (op.equals("checkCode")){
+        String id = request.getParameter("softwareid");
+        if (!config.isSandboxed()) {
+          out.print(mc.checkCode(id));
+        }
       } else if (op.equals("addSoftware")) {
         String software_typeid = request.getParameter("software_typeid");
 				if (!config.isSandboxed())
