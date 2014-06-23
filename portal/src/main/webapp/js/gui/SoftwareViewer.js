@@ -2647,10 +2647,14 @@ SoftwareViewer.prototype.initSoftwareTreePanelEvents = function() {
     });
 
     This.tabPanel.on('tabchange', function(tp, tab) {
-        if (tab.path)
+        if (tab.path) {
             This.treePanel.selectPath(tab.path, 'text');
-        else
+            window.top.location.hash = "#" + tab.title;
+        }
+        else {
             This.treePanel.getSelectionModel().deselectAll();
+            window.top.location.hash = "";
+        }
     });
 
     return This.treePanel;
@@ -2777,6 +2781,14 @@ SoftwareViewer.prototype.initialize = function() {
             autoLoad: {
                 url: this.op_url + '/intro'
             }
+        },{
+            xtype : 'component',
+            title: 'Solr Search',
+            autoEl : {
+                tag : 'iframe',
+                src : this.op_url + '/../jsp/search.jsp'
+            },
+            border: false
         }]
     });
 
