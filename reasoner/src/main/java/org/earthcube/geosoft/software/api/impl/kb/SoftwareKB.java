@@ -138,6 +138,31 @@ public class SoftwareKB implements SoftwareAPI {
     }
   }
   
+  private ArrayList<KBTriple> createEntailments(KBAPI kb, KBObject obj, 
+      KBObject cls, KBObject typeProp, ArrayList<KBTriple> triples) {
+    for(KBObject supercls : kb.getSuperClasses(cls, false)) {
+      KBTriple triple = this.ontologyFactory.getTriple(obj, typeProp, supercls);
+      triples.add(triple);
+      kb.addTriple(triple);
+      triples = this.createEntailments(kb, obj, supercls, typeProp, triples);
+    }
+    return triples;
+  }
+  
+  private ArrayList<KBTriple> createEntailments(KBAPI kb) {
+    KBObject typeProp = kb.getProperty(KBUtils.RDF+"type");
+    ArrayList<KBTriple> addedTriples = new ArrayList<KBTriple>();
+    for(KBObject cls : kb.getAllClasses()) {
+      if(cls.isAnonymous()) continue;
+      if(!cls.getNamespace().equals(this.ontns) &&
+          !cls.getNamespace().equals(this.liburl+"#"))
+        continue;
+      for(KBObject obj : kb.getInstancesOfClass(cls, true))
+        addedTriples = this.createEntailments(kb, obj, cls, typeProp, addedTriples);
+    }
+    return addedTriples;
+  }
+
   /*private void initDomainKnowledge() {
     // Create general domain knowledge data for use in rules
     domainKnowledge = new ArrayList<KBTriple>();
@@ -566,6 +591,8 @@ public class SoftwareKB implements SoftwareAPI {
       this.writerkb = tkb;
       this.addSoftware(software);
       this.writerkb = backup;
+      
+      this.createEntailments(tkb);
       
       // Redirect output (to catch rule printouts)
       ByteArrayOutputStream bost = new ByteArrayOutputStream();
