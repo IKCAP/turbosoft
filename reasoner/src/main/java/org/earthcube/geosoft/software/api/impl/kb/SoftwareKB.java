@@ -57,9 +57,8 @@ public class SoftwareKB implements SoftwareAPI {
 
   protected OntFactory ontologyFactory;
 
-  protected HashMap<String, KBObject> objPropMap;
-  protected HashMap<String, KBObject> dataPropMap;
-  //protected HashMap<String, KBObject> conceptMap;
+  protected HashMap<String, KBObject> propMap;
+  protected HashMap<String, KBObject> conceptMap;
   protected HashMap<String, SWProperty> provProps;
 
   protected ArrayList<KBTriple> domainKnowledge;
@@ -115,54 +114,28 @@ public class SoftwareKB implements SoftwareAPI {
   }
 
   private void initializeMaps(KBAPI kb) {
-    this.objPropMap = new HashMap<String, KBObject>();
-    this.dataPropMap = new HashMap<String, KBObject>();
-    //this.conceptMap = new HashMap<String, KBObject>();
+    this.propMap = new HashMap<String, KBObject>();
+    this.conceptMap = new HashMap<String, KBObject>();
     this.provProps = new HashMap<String, SWProperty>();
 
+    for (KBObject con : kb.getAllClasses()) {
+      if(con.getID() != null) {
+        this.conceptMap.put(con.getID(), con);
+        this.conceptMap.put(con.getName(), con);
+      }
+    }
     for (KBObject prop : kb.getAllObjectProperties()) {
-      this.objPropMap.put(prop.getName(), prop);
+      this.propMap.put(prop.getID(), prop);
+      this.propMap.put(prop.getName(), prop);
     }
-    /*for (KBObject con : kb.getAllClasses()) {
-      this.conceptMap.put(con.getName(), con);
-    }*/
-    for (KBObject odp : kb.getAllDatatypeProperties()) {
-      this.dataPropMap.put(odp.getName(), odp);
+    for (KBObject prop : kb.getAllDatatypeProperties()) {
+      this.propMap.put(prop.getID(), prop);
+      this.propMap.put(prop.getName(), prop);
     }
-    KBObject propTopProp = kb.getProperty(this.ontns + "hasProvenance");
+    KBObject propTopProp = propMap.get("hasProvenance");
     for(KBObject pp : kb.getSubPropertiesOf(propTopProp , false)) {
       this.provProps.put(pp.getID(), this.getSWProperty(pp, false));
     }
-  }
-  
-  private ArrayList<KBTriple> createEntailments(KBAPI kb, KBObject obj, 
-      KBObject cls, KBObject typeProp, ArrayList<KBTriple> triples) {
-    for(KBObject supercls : kb.getSuperClasses(cls, false)) {
-      KBTriple triple = this.ontologyFactory.getTriple(obj, typeProp, supercls);
-      triples.add(triple);
-      kb.addTriple(triple);
-      triples = this.createEntailments(kb, obj, supercls, typeProp, triples);
-    }
-    return triples;
-  }
-  
-  private ArrayList<KBTriple> createEntailments(KBAPI kb) {
-    KBObject typeProp = kb.getProperty(KBUtils.RDF+"type");
-    ArrayList<KBTriple> addedTriples = new ArrayList<KBTriple>();
-    for(KBObject cls : kb.getAllClasses()) {
-      if(cls.isAnonymous()) continue;
-      if(!cls.getNamespace().equals(this.ontns) &&
-          !cls.getNamespace().equals(this.liburl+"#"))
-        continue;
-      for(KBObject obj : kb.getInstancesOfClass(cls, true))
-        addedTriples = this.createEntailments(kb, obj, cls, typeProp, addedTriples);
-    }
-    return addedTriples;
-  }
-  
-  private void removeEntailments(KBAPI kb, ArrayList<KBTriple> entailments) {
-    for(KBTriple triple: entailments)
-      kb.removeTriple(triple);
   }
   
   /*private void initDomainKnowledge() {
@@ -192,16 +165,16 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   public SoftwareType getSoftwareTypesTree() {
-    ArrayList<KBTriple> entailments = this.createEntailments(this.kb);
+    //ArrayList<KBTriple> entailments = this.createEntailments(this.kb);
     SoftwareType rootType = this.getSoftwareType(this.ontns + "Software", true);
-    this.removeEntailments(this.kb, entailments);
+    //this.removeEntailments(this.kb, entailments);
     return rootType;
   }
   
   @Override
   public SoftwareType getSoftwareType(String id, boolean getSubtypes) {
     SoftwareType type = new SoftwareType(id);
-    KBObject cls = this.kb.getConcept(id);
+    KBObject cls = conceptMap.get(id);
     type.setAnnotation(this.kb.getComment(cls));
     if(getSubtypes) {
       for(KBObject obj : this.kb.getSubClasses(cls, true)) {
@@ -212,15 +185,19 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   @Override
-  public ArrayList<Software> getSoftwares(boolean details) {
-    ArrayList<KBTriple> entailments = this.createEntailments(kb);
+  public ArrayList<Software> getSoftwares(SoftwareType root, boolean details) {
     ArrayList<Software> softwares = new ArrayList<Software>();
-    KBObject softwarecls = this.kb.getConcept(this.ontns + "Software");
-    ArrayList<KBObject> softwareobjs = this.kb.getInstancesOfClass(softwarecls, false);
-    for (KBObject softwareobj : softwareobjs) {
-      softwares.add(getSoftware(softwareobj.getID(), details));
+    ArrayList<SoftwareType> queue = new ArrayList<SoftwareType>();
+    queue.add(root);
+    while(queue.size() > 0) {
+      SoftwareType type = queue.remove(0);
+      KBObject softwarecls = conceptMap.get(type.getId());
+      ArrayList<KBObject> softwareobjs = this.kb.getInstancesOfClass(softwarecls, true);
+      for (KBObject softwareobj : softwareobjs) {
+        softwares.add(getSoftware(softwareobj.getID(), details));
+      }
+      queue.addAll(type.getSubtypes());
     }
-    this.removeEntailments(kb, entailments);
     return softwares;
   }
   
@@ -229,14 +206,14 @@ public class SoftwareKB implements SoftwareAPI {
     KBObject softwareobj = kb.getIndividual(softwareid);
     if(softwareobj == null) return null;
 
-    KBObject holderprop = this.writerkb.getProperty(this.ontns + "hasValueHolder");
+    KBObject holderprop = propMap.get("hasValueHolder");
     
     KBObject softwarecls = kb.getClassOfInstance(softwareobj);    
     Software software = new Software(softwareobj.getID(), softwarecls.getID());
     if(details) {
       
-      KBObject noteProp = this.dataPropMap.get("Note");
-      KBObject ivarProp = this.dataPropMap.get("InternalVariable");
+      KBObject noteProp = this.propMap.get("Note");
+      KBObject ivarProp = this.propMap.get("InternalVariable");
       
       // Get software property values
       for(KBObject holder : kb.getPropertyValues(softwareobj, holderprop)) {
@@ -336,7 +313,7 @@ public class SoftwareKB implements SoftwareAPI {
   public boolean setSoftwareType(String softwareid, String typeid) {
     KBObject mobj = this.kb.getIndividual(softwareid);
     if(mobj == null) return false;
-    KBObject cls = this.kb.getConcept(typeid);
+    KBObject cls = conceptMap.get(typeid);
     if(cls == null) return false;
     this.writerkb.setClassForInstance(mobj, cls);
     return true;
@@ -345,11 +322,11 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public boolean addSoftware(Software software) {
     String softwareid = software.getID();
-    KBObject cls = this.kb.getConcept(software.getClassId());
+    KBObject cls = conceptMap.get(software.getClassId());
     KBObject mobj = this.writerkb.createObjectOfClass(softwareid, cls);
     
-    KBObject holdercls = this.kb.getConcept(this.ontns + "ValueHolder");
-    KBObject holderprop = this.kb.getProperty(this.ontns + "hasValueHolder");
+    KBObject holdercls = conceptMap.get("ValueHolder");
+    KBObject holderprop = propMap.get("hasValueHolder");
     
     HashMap<String, SWProperty> props = new HashMap<String, SWProperty>(); 
     for(SWProperty prop : this.getAllSoftwareProperties(false))
@@ -359,7 +336,7 @@ public class SoftwareKB implements SoftwareAPI {
       if(mpv.getValue() == null || mpv.getValue().equals(""))
         continue;
       SWProperty prop = props.get(mpv.getPropertyId());
-      KBObject propobj = this.kb.getProperty(prop.getId());
+      KBObject propobj = propMap.get(prop.getId());
       KBObject valobj = null;
       if(mpv.getValue() instanceof LinkedTreeMap) {
         // If value is a complex gson object
@@ -367,14 +344,14 @@ public class SoftwareKB implements SoftwareAPI {
         LinkedTreeMap map = (LinkedTreeMap) mpv.getValue();
         if(map.containsKey("type")) {
           String typeid = (String) map.get("type");
-          KBObject typecls = this.kb.getConcept(typeid);
+          KBObject typecls = conceptMap.get(typeid);
           if(typecls == null) continue;
           
           valobj = this.writerkb.createObjectOfClass(null, typecls);
           for(Object key : map.keySet()) {
             if(key.equals("type"))
               continue;
-            KBObject typeprop = this.dataPropMap.get(key);
+            KBObject typeprop = propMap.get(key);
             KBObject typevalobj = this.kb.createLiteral(map.get(key));
             this.writerkb.addPropertyValue(valobj, typeprop, typevalobj);
           }
@@ -405,8 +382,8 @@ public class SoftwareKB implements SoftwareAPI {
     }
     
     // Store I/O
-    KBObject inProp = kb.getProperty(this.ontns + "hasInput");
-    KBObject outProp = kb.getProperty(this.ontns + "hasOutput");
+    KBObject inProp = propMap.get("hasInput");
+    KBObject outProp = propMap.get("hasOutput");
 
     for (SoftwareRole role : software.getInputs()) {
       role.setID(softwareid + "_" + role.getRoleName()); // HACK: role id is <swid>_<rolename>
@@ -423,11 +400,11 @@ public class SoftwareKB implements SoftwareAPI {
       this.writerkb.addTriple(mobj, outProp, roleobj);
     }
 
-    KBObject noteProp = this.dataPropMap.get("Note");
-    KBObject ivarProp = this.dataPropMap.get("InternalVariable");
+    KBObject noteProp = propMap.get("Note");
+    KBObject ivarProp = propMap.get("InternalVariable");
     
     // Store Assumptions
-    KBObject asProp = kb.getProperty(this.ontns + "hasAssumption");
+    KBObject asProp = propMap.get("hasAssumption");
     for(SNAssumption assumption: software.getAssumptions()) {
       KBObject asobj = kb.getIndividual(assumption.getID());
       if(asobj == null) {
@@ -445,7 +422,7 @@ public class SoftwareKB implements SoftwareAPI {
     }
     
     // Store StandardNames
-    KBObject snProp = kb.getProperty(this.ontns + "hasStandardName");
+    KBObject snProp = propMap.get("hasStandardName");
     for(StandardName sname: software.getStandardNames()) {
       KBObject snameobj = this.createStandardName(sname, software.getLabels());
       KBObject valholder = this.writerkb.createObjectOfClass(null, holdercls);
@@ -500,7 +477,7 @@ public class SoftwareKB implements SoftwareAPI {
     for (KBObject obj : outputobjs) {
       KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
     }
-    KBObject holderprop = this.writerkb.getProperty(this.ontns + "hasValueHolder");
+    KBObject holderprop = propMap.get("hasValueHolder");
     for (KBObject obj : kb.getPropertyValues(compobj, holderprop)) {
       for(KBTriple t : kb.genericTripleQuery(obj, null, null))
         writerkb.removeTriple(t);
@@ -523,7 +500,7 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   public boolean addSoftwareType(String typeid, String parentid) {
-    KBObject pcls = this.kb.getConcept(parentid);
+    KBObject pcls = conceptMap.get(parentid);
     if(pcls == null)
       return false;
     KBObject cls = this.writerkb.createClass(typeid, parentid);
@@ -537,7 +514,7 @@ public class SoftwareKB implements SoftwareAPI {
    * This just updates the software type annotation & parent for now
    */
   public boolean updateSoftwareType(SoftwareType type) {
-    KBObject cls = this.kb.getConcept(type.getId());
+    KBObject cls = conceptMap.get(type.getId());
     // Add new information
     if(type.getParentid() != null)
       this.writerkb.setSuperClass(type.getId(), type.getParentid());
@@ -548,7 +525,7 @@ public class SoftwareKB implements SoftwareAPI {
   
   @Override
   public boolean removeSoftwareType(String typeid) {
-    KBObject cls = this.kb.getConcept(typeid);
+    KBObject cls = conceptMap.get(typeid);
     // Remove all softwares
     ArrayList<KBObject> softwares = this.kb.getInstancesOfClass(cls, true);
     for (KBObject sw : softwares) {
@@ -589,8 +566,6 @@ public class SoftwareKB implements SoftwareAPI {
       this.writerkb = tkb;
       this.addSoftware(software);
       this.writerkb = backup;
-      
-      this.createEntailments(tkb);
       
       // Redirect output (to catch rule printouts)
       ByteArrayOutputStream bost = new ByteArrayOutputStream();
@@ -691,9 +666,9 @@ public class SoftwareKB implements SoftwareAPI {
             
             String iotype = mime.split("/")[1];
             // Check iotype id
-            KBObject iocls = this.kb.getConcept(this.dataurl + "#" + iotype);
+            KBObject iocls = conceptMap.get(this.dataurl + "#" + iotype);
             if(iocls == null)
-              iocls = this.kb.getConcept(this.d_onturl + "#" + iotype);
+              iocls = conceptMap.get(this.d_onturl + "#" + iotype);
             if(iocls == null)
               continue;
             
@@ -801,7 +776,7 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<SNObject> getObjects() {
     ArrayList<SNObject> objects = new ArrayList<SNObject>();
-    KBObject objcls = this.kb.getConcept(this.ontns + "Object");
+    KBObject objcls = conceptMap.get(this.ontns + "Object");
     for(KBObject obj : this.kb.getInstancesOfClass(objcls, true)) {
       objects.add(this.getSNObject(obj));
     }
@@ -811,7 +786,7 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<SNQuantity> getQuantities() {
     ArrayList<SNQuantity> quantities = new ArrayList<SNQuantity>();
-    KBObject quantitycls = this.kb.getConcept(this.ontns + "Quantity");
+    KBObject quantitycls = conceptMap.get(this.ontns + "Quantity");
     for(KBObject obj : this.kb.getInstancesOfClass(quantitycls, true)) {
       quantities.add(this.getSNQuantity(obj));
     }
@@ -821,7 +796,7 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<SNOperator> getOperators() {
     ArrayList<SNOperator> ops = new ArrayList<SNOperator>();
-    KBObject opcls = this.kb.getConcept(this.ontns + "Operator");
+    KBObject opcls = conceptMap.get(this.ontns + "Operator");
     for(KBObject obj : this.kb.getInstancesOfClass(opcls, true)) {
       ops.add(this.getSNOperator(obj));
     }
@@ -831,11 +806,11 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<StandardName> getStandardNames() {
     ArrayList<StandardName> snames = new ArrayList<StandardName>();
-    KBObject sncls = this.kb.getConcept(this.ontns + "StandardName");
-    KBObject oprop = this.kb.getProperty(this.ontns + "hasObject");
-    KBObject qprop = this.kb.getProperty(this.ontns + "hasQuantity");
-    KBObject opprop = this.kb.getProperty(this.ontns + "hasOperator");
-    KBObject opprop2 = this.kb.getProperty(this.ontns + "hasSecondOperator");
+    KBObject sncls = conceptMap.get("StandardName");
+    KBObject oprop = propMap.get("hasObject");
+    KBObject qprop = propMap.get("hasQuantity");
+    KBObject opprop = propMap.get("hasOperator");
+    KBObject opprop2 = propMap.get("hasSecondOperator");
 
     for(KBObject obj : this.kb.getInstancesOfClass(sncls, true)) {
       StandardName sname = new StandardName(obj.getID());
@@ -854,10 +829,10 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private StandardName getStandardName(KBObject snobj) {
-    KBObject objProp = this.objPropMap.get("hasObject");
-    KBObject qProp = this.objPropMap.get("hasQuantity");
-    KBObject opProp = this.objPropMap.get("hasOperator");
-    KBObject opProp2 = this.objPropMap.get("hasSecondOperator");
+    KBObject objProp = propMap.get("hasObject");
+    KBObject qProp = propMap.get("hasQuantity");
+    KBObject opProp = propMap.get("hasOperator");
+    KBObject opProp2 = propMap.get("hasSecondOperator");
     
     StandardName sname = new StandardName(snobj.getID());
     sname.setLabel(this.kb.getLabel(snobj));
@@ -890,7 +865,7 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<URIEntity> getAssumptionCategories() {
     ArrayList<URIEntity> categories = new ArrayList<URIEntity>();
-    KBObject ascls = this.kb.getConcept(this.ontns + "Assumption");
+    KBObject ascls = conceptMap.get(this.ontns + "Assumption");
     ArrayList<KBObject> astypes = this.kb.getSubClasses(ascls, true);
     for(KBObject astype : astypes) {
       URIEntity category = new URIEntity(astype.getID());
@@ -903,7 +878,7 @@ public class SoftwareKB implements SoftwareAPI {
   @Override
   public ArrayList<SNAssumption> getAssumptions() {
     ArrayList<SNAssumption> assumptions = new ArrayList<SNAssumption>();
-    KBObject ascls = this.kb.getConcept(this.ontns + "Assumption");
+    KBObject ascls = conceptMap.get(this.ontns + "Assumption");
     ArrayList<KBObject> astypes = this.kb.getSubClasses(ascls, true);
     for(KBObject astype : astypes) {
       for(KBObject obj : this.kb.getInstancesOfClass(astype, true)) {
@@ -989,7 +964,7 @@ public class SoftwareKB implements SoftwareAPI {
     
     if(rangeValues && range != null && prop.isObjectProperty()) {
       // Get Range Values
-      KBObject rangecls = this.kb.getConcept(range.getID());
+      KBObject rangecls = conceptMap.get(range.getID());
       for (KBObject pvalobj : this.kb.getInstancesOfClass(rangecls, false)) {
         if(!pvalobj.isAnonymous())
           prop.addPossibleValue(pvalobj.getID());
@@ -999,12 +974,12 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private ArrayList<KBObject> getSoftwareInputs(KBObject compobj) {
-    KBObject inProp = kb.getProperty(this.ontns + "hasInput");
+    KBObject inProp = propMap.get("hasInput");
     return kb.getPropertyValues(compobj, inProp);
   }
 
   private ArrayList<KBObject> getSoftwareOutputs(KBObject compobj) {
-    KBObject outProp = kb.getProperty(this.ontns + "hasOutput");
+    KBObject outProp = propMap.get("hasOutput");
     return kb.getPropertyValues(compobj, outProp);
   }
   
@@ -1015,7 +990,7 @@ public class SoftwareKB implements SoftwareAPI {
       if (!type.getNamespace().equals(this.ontns))
         arg.setType(type.getID());
     }
-    KBObject argidProp = kb.getProperty(this.ontns + "ParameterName");
+    KBObject argidProp = propMap.get("hasParameterName");
     KBObject role = kb.getPropertyValue(argobj, argidProp);
     if (role != null && role.getValue() != null)
       arg.setRoleName(role.getValue().toString());
@@ -1025,13 +1000,13 @@ public class SoftwareKB implements SoftwareAPI {
   }
 
   private KBObject createRole(SoftwareRole role) {
-    KBObject argidProp = kb.getProperty(this.ontns + "ParameterName");
-    KBObject roletypeobj = this.kb.getConcept(this.ontns + "SoftwareParameter");
+    KBObject argidProp = propMap.get("hasParameterName");
+    KBObject roletypeobj = conceptMap.get("SoftwareParameter");
     KBObject roleobj = writerkb.createObjectOfClass(role.getID(), roletypeobj);
     writerkb.setPropertyValue(roleobj, argidProp,
         ontologyFactory.getDataObject(role.getRoleName()));
     // Write the role type
-    KBObject typeobj = kb.getConcept(role.getType());
+    KBObject typeobj = conceptMap.get(role.getType());
     if (typeobj != null)
       writerkb.addClassForInstance(roleobj, typeobj);
     this.addURIEntityProvenance(roleobj, role);
@@ -1040,7 +1015,7 @@ public class SoftwareKB implements SoftwareAPI {
   
   private void setProvenance(KBObject obj, URIEntity item) {
     for(String propId : this.provProps.keySet()) {
-      KBObject propobj = this.kb.getProperty(propId);
+      KBObject propobj = propMap.get(propId);
       KBObject val = this.kb.getDatatypePropertyValue(obj, propobj);
       if(val != null && val.getValue() != null)
         item.addProvenance(propId, val.getValue());
@@ -1053,7 +1028,7 @@ public class SoftwareKB implements SoftwareAPI {
     SWProperty provprop = this.provProps.get(propId);
     if(provprop == null)
       return;
-    KBObject ppropobj = this.kb.getProperty(provprop.getId());
+    KBObject ppropobj = propMap.get(provprop.getId());
     KBObject pvalobj;
     if(provprop.isObjectProperty())
       pvalobj = this.kb.getIndividual(value.toString());
@@ -1079,7 +1054,7 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private KBObject createAssumption(SNAssumption assumption, HashMap<String, String> labels) {
-    KBObject catcls = this.kb.getConcept(assumption.getCategoryId());
+    KBObject catcls = conceptMap.get(assumption.getCategoryId());
     if(catcls == null) {
       catcls = this.writerkb.createClass(assumption.getCategoryId(), 
           this.ontns + "Assumption");
@@ -1093,7 +1068,7 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private KBObject createObject(SNObject object, HashMap<String, String> labels) {
-    KBObject cls = this.kb.getConcept(this.ontns + "Object");
+    KBObject cls = conceptMap.get(this.ontns + "Object");
     KBObject itemobj = this.writerkb.createObjectOfClass(object.getID(), cls);
     if(labels.containsKey(itemobj.getID()))
       this.writerkb.setLabel(itemobj, labels.get(itemobj.getID()));
@@ -1102,7 +1077,7 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private KBObject createQuantity(SNQuantity quantity, HashMap<String, String> labels) {
-    KBObject cls = this.kb.getConcept(this.ontns + "Quantity");
+    KBObject cls = conceptMap.get(this.ontns + "Quantity");
     KBObject itemobj = this.writerkb.createObjectOfClass(quantity.getID(), cls);
     if(labels.containsKey(itemobj.getID()))
       this.writerkb.setLabel(itemobj, labels.get(itemobj.getID()));
@@ -1111,7 +1086,7 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private KBObject createOperator(SNOperator operator, HashMap<String, String> labels) {
-    KBObject cls = this.kb.getConcept(this.ontns + "Operator");
+    KBObject cls = conceptMap.get(this.ontns + "Operator");
     KBObject itemobj = this.writerkb.createObjectOfClass(operator.getID(), cls);
     if(labels.containsKey(itemobj.getID()))
       this.writerkb.setLabel(itemobj, labels.get(itemobj.getID()));
@@ -1120,10 +1095,10 @@ public class SoftwareKB implements SoftwareAPI {
   }
   
   private KBObject createStandardName(StandardName sname, HashMap<String, String> labels) {
-    KBObject objProp = kb.getProperty(this.ontns + "hasObject");
-    KBObject qProp = kb.getProperty(this.ontns + "hasQuantity");
-    KBObject opProp = kb.getProperty(this.ontns + "hasOperator");
-    KBObject opProp2 = kb.getProperty(this.ontns + "hasSecondOperator");
+    KBObject objProp = propMap.get("hasObject");
+    KBObject qProp = propMap.get("hasQuantity");
+    KBObject opProp = propMap.get("hasOperator");
+    KBObject opProp2 = propMap.get("hasSecondOperator");
     
     KBObject obj = kb.getIndividual(sname.getObjectId());
     if (obj == null) 
@@ -1179,7 +1154,7 @@ public class SoftwareKB implements SoftwareAPI {
     
     // If it doesn't exist, then create one
     if(snameobj == null) {
-      KBObject cls = this.kb.getConcept(this.ontns + "StandardName");
+      KBObject cls = conceptMap.get(this.ontns + "StandardName");
       snameobj = this.writerkb.createObjectOfClass(sname.getID(), cls);
       this.writerkb.setLabel(snameobj, sname.getLabel());
       

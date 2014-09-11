@@ -23,7 +23,7 @@ public interface SoftwareAPI {
   
   SoftwareType getSoftwareType(String id, boolean getSubtypes);
   
-  ArrayList<Software> getSoftwares(boolean details);
+  ArrayList<Software> getSoftwares(SoftwareType root, boolean details);
 
   ArrayList<SWProperty> getAllSoftwareProperties(boolean rangeValues);
   

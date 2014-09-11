@@ -51,7 +51,7 @@ public class SoftwareController {
     this.guid = guid;
     this.config = config;
     this.isSandboxed = config.isSandboxed();
-    json = JsonHandler.createPrettyGson();
+    json = JsonHandler.createGson();
 
     this.props = config.getProperties();
     api = SoftwareFactory.getAPI(props);
@@ -72,8 +72,9 @@ public class SoftwareController {
   public void show(PrintWriter out) {
     // Get Hierarchy
     try {
-      String list = json.toJson(api.getSoftwares(false));
-      String software_types = json.toJson(api.getSoftwareTypesTree());
+      SoftwareType typeroot = api.getSoftwareTypesTree();
+      String list = json.toJson(api.getSoftwares(typeroot, false));
+      String software_types = json.toJson(typeroot);
       String data_types = json.toJson(dapi.getAllDatatypeIds());
       String props = json.toJson(api.getAllSoftwareProperties(true));
       
