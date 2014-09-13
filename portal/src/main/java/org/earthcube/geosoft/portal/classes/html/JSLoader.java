@@ -7,7 +7,7 @@ import org.earthcube.geosoft.portal.classes.Config;
 
 public class JSLoader {
   static String[] common_scripts = { "lib/extjs/ext-all.js",
-      "js/util/common.js" };
+      "js/util/common.js", "js/util/TreeMod.js" };
   static String[] software_scripts = { "js/gui/SoftwareViewer.js" };
   static String[] data_scripts = { "js/gui/DataViewer.js" };
   static String[] community_scripts = { "js/gui/CommunityViewer.js" };

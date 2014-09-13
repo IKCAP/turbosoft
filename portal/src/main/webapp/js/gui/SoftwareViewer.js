@@ -46,6 +46,21 @@ function SoftwareViewer(guid, store, op_url, upload_url, ontns, liburl, advanced
     	this.idmap[store.sninfo.assumptions[i].id] = store.sninfo.assumptions[i];
     for(var i=0; i<store.sninfo.standardnames.length; i++)
     	this.idmap[store.sninfo.standardnames[i].id] = store.sninfo.standardnames[i];
+    
+    // Create label to item mappings for all standard-name items
+    this.labelmap = {};
+    for(var i=0; i<store.sninfo.categories.length; i++)
+    	this.labelmap[store.sninfo.categories[i].label] = store.sninfo.categories[i];
+    for(var i=0; i<store.sninfo.objects.length; i++)
+    	this.labelmap[store.sninfo.objects[i].label] = store.sninfo.objects[i];
+    for(var i=0; i<store.sninfo.quantities.length; i++)
+    	this.labelmap[store.sninfo.quantities[i].label] = store.sninfo.quantities[i];
+    for(var i=0; i<store.sninfo.operators.length; i++)
+    	this.labelmap[store.sninfo.operators[i].label] = store.sninfo.operators[i];
+    for(var i=0; i<store.sninfo.assumptions.length; i++)
+    	this.labelmap[store.sninfo.assumptions[i].label] = store.sninfo.assumptions[i];
+    for(var i=0; i<store.sninfo.standardnames.length; i++)
+    	this.labelmap[store.sninfo.standardnames[i].label] = store.sninfo.standardnames[i];
 };
 
 SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, enableDrag) {
@@ -61,14 +76,32 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         root: root,
         sorters: ['text']
     });
+    
+    var tbar = null;
+    if (this.advanced_user) {
+    	var renitem = This.getRenameMenuItem();
+        var delitem = This.getDeleteMenuItem();
+        renitem.iconCls = "icon-edit fa fa-browngrey";
+        delitem.iconCls = "icon-del fa fa-red";
+        tbar = [{
+        	text: 'Add',
+    	    iconCls: 'icon-add fa fa-green',
+    	    menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
+    	          '-', This.getImportMenuItem()]
+        },
+        renitem, delitem];
+    }
+    
     var treePanel = new Ext.tree.TreePanel({
         width: '100%',
         border: false,
         autoScroll: true,
         hideHeaders: true,
         rootVisible: false,
+        useArrows: true,
         iconCls: iconCls,
-        bodyCls: 'x-docked-noborder-top',
+        //bodyCls: 'x-docked-noborder-top',
+        tbar: tbar,
         title: title,
         store: treeStore,
         url: This.op_url,
@@ -77,7 +110,8 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
                 ptype: 'treeviewdragdrop',
                 enableDrag: true,
                 appendOnly: true
-            }
+            },
+            stripeRows: true
         },
         listeners: {
             itemcontextmenu: {
@@ -136,7 +170,10 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 			text: getLocalName(typeid),
 			leaf: false,
 			readonly: type.readonly,
-			iconCls: type.readonly ? 'ontdtypeIcon' : 'dtypeIcon',
+			iconCls: 'icon-folder fa fa-' + (
+					type.readonly ? 'grey' : 'yellow'),
+			expIconCls: 'icon-folder-open fa fa-' + (
+					type.readonly ? 'grey' : 'yellow'),					
 			expanded: true,
 			children: []
 		};
@@ -161,7 +198,7 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
     		id: software.id,
     		text: getLocalName(software.id),
     		leaf: true,
-    		iconCls: 'compIcon'
+    		iconCls: 'icon-component fa-tree fa-orange'
     	});
     }
     return root;
@@ -169,7 +206,8 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 
 SoftwareViewer.prototype.getSoftwareListTree = function(enableDrag) {
     var tmp = this.getSoftwareTree(this.store.softwares);
-    return this.getSoftwareTreePanel(tmp, 'Softwares', 'compIcon', enableDrag);
+    return this.getSoftwareTreePanel(tmp, 'Softwares', 
+    		'icon-component fa-title fa-orange', enableDrag);
 };
 
 SoftwareViewer.prototype.addSoftware = function() {
@@ -212,7 +250,7 @@ SoftwareViewer.prototype.addSoftware = function() {
                     		id: softwareid,
                     		text: getLocalName(softwareid),
                     		leaf: true,
-                    		iconCls: 'compIcon'
+                    		iconCls: 'icon-component fa fa-orange'
                     	});
                     	pNode.expand();
                         This.treePanel.getStore().sort('text', 'ASC');
@@ -268,7 +306,8 @@ SoftwareViewer.prototype.addSoftwareType = function() {
                     		id: typeid,
                     		text: getLocalName(typeid),
                     		leaf: false,
-                    		iconCls: 'dtypeIcon',
+                    		iconCls: 'icon-folder fa fa-yellow',
+                    		expIconCls: 'icon-folder-open fa fa-yellow',
                     		children: []
                     	});
                         cTree.getStore().sort('text', 'ASC');
@@ -414,7 +453,7 @@ SoftwareViewer.prototype.importSoftware = function(repo_id) {
                     		id: softwareid,
                     		text: getLocalName(softwareid),
                     		leaf: true,
-                    		iconCls: 'compIcon'
+                    		iconCls: 'icon-component fa fa-orange'
                     	});
                         This.treePanel.getStore().sort('text', 'ASC');
                     } else {
@@ -448,7 +487,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-browngrey',
         disabled: true,
         handler: function() {
         	var form = tab.down('form');
@@ -499,7 +538,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     
 	var checkbtn = new Ext.Button({
 		text: 'Check code',
-		iconCls: 'inferIcon',
+		iconCls: 'icon-run fa fa-brown',
 		handler: function() {
 			var form = tab.down('form');
 			Ext.get(This.tabPanel.getId()).mask("Checking Code...");
@@ -527,7 +566,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
 	
     var inferbtn = new Ext.Button({
         text: 'Make suggestions',
-        iconCls: 'inferIcon',
+        iconCls: 'icon-run fa fa-brown',
         handler: function() {
         	var form = tab.down('form');
         	Ext.get(This.tabPanel.getId()).mask("Getting Suggestions..");
@@ -556,17 +595,32 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         }
     });
 
+	var editable = true;
+    var tbar = [];
+    if(editable) {
+    	tbar = [ inferbtn, checkbtn, savebtn ];
+    }
+    tbar.push({xtype: 'tbfill'});
+    tbar.push('-');
+	tbar.push({
+		iconCls : 'icon-reload fa fa-green',
+		text : 'Reload',
+		handler : function() {
+			tab.getLoader().load();
+			savebtn.setDisabled(true);
+			tab.setTitle(tab.title.replace(/^\*/, ''));
+		}
+	});
+	
     tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, true);
     
-	var editable = true;
     var mainPanelItems = [ tab.softwareEditor ];
     
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
-        tbar: editable ? [ inferbtn, checkbtn, savebtn ] : null,
+        tbar: tbar,
         layout: 'fit',
-        //tbar: tbar,
         bodyStyle: editable ? '' : 'background-color:#ddd',
         items: mainPanelItems
     });
@@ -582,7 +636,7 @@ SoftwareViewer.prototype.openSoftwareTypeEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-browngrey',
         disabled: true,
         handler: function() {
         	var form = tab.down('form');
@@ -983,7 +1037,7 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
 		},
         tbar: [{
             text: 'Accept Suggestions',
-            iconCls: 'selectIcon',
+            iconCls: 'icon-select-alt fa fa-green',
             handler: function() {
             	var mygrid = this.up('grid');
                 var recs = mygrid.getSelectionModel().getSelection();
@@ -1195,6 +1249,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 		region: 'center',
         border: false,
         plain: true,
+        margins: '5 0 0 0',
 		activetab : 0,
 		items : []
 	};
@@ -1458,7 +1513,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 				// Create a grid toolbar and have an "Add"/"Delete" button
 				filegrid.tbar = [{
 	                text: 'Add',
-	                iconCls: 'addIcon',
+	                iconCls: 'icon-add fa fa-green',
 	                handler: function() {
 	                	var fgrid = this.up('grid');
 	                    var gridStore = fgrid.getStore();
@@ -1476,7 +1531,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	                    });
 	                }
 	            }, {
-	                iconCls: 'delIcon',
+	                iconCls: 'icon-del fa fa-red',
 	                text: 'Delete',
 	                roletype: i,
 	                handler: function() {
@@ -1641,7 +1696,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
     	xtype: 'tabpanel',
         region: 'center',
         layout: 'border',
-        iconCls: 'paramIcon',
+        iconCls: 'icon-param fa fa-browngrey',
         bodyStyle:'padding:0px',
         layout: 'auto',
         border: false,
@@ -1764,7 +1819,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
         if (editable) {
             tbar = [{
                 text: 'Add',
-                iconCls: 'addIcon',
+                iconCls: 'icon-add fa fa-green',
                 roletype: i,
                 handler: function() {
                     var i = this.roletype;
@@ -1781,7 +1836,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
                     });
                 }
             }, {
-                iconCls: 'delIcon',
+                iconCls: 'icon-del fa fa-red',
                 text: 'Delete',
                 roletype: i,
                 handler: function() {
@@ -1804,7 +1859,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
             border: false,
             // forceFit: true,
             title: (i == 0 ? 'Inputs': 'Outputs'),
-            iconCls: (i == 0 ? 'inputIcon': 'outputIcon'),
+            iconCls: (i == 0 ? 'icon-input fa fa-blue': 'icon-output fa fa-brown'),
             type: !i ? 'input' : 'output',
             columns: columns,
             selModel: sm,
@@ -1907,12 +1962,13 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
     	var repotab = new Ext.Panel({
             region: 'center',
     		title: repoid,
+    		layout: 'fit',
             border: false,
             defaults: {
                 border: false,
                 padding: 0
             },
-            autoScroll: true
+            //autoScroll: true
     	});
     	
         // Register store models
@@ -2083,7 +2139,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
         if (editable) {
             tbar = [{
                 text: 'Add Assumption',
-                iconCls: 'addIcon',
+                iconCls: 'icon-add fa fa-green',
                 handler: function() {
                 	var panel = this.up('panel');
                     var gstore = panel.getStore();
@@ -2097,7 +2153,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
                     });
                 }
             }, {
-                iconCls: 'delIcon',
+                iconCls: 'icon-del fa fa-red',
                 text: 'Delete',
                 roletype: i,
                 handler: function() {
@@ -2159,6 +2215,63 @@ SoftwareViewer.prototype.setDefaultProvenance = function(rec) {
 	rec.set('provenance', prov);	
 };
 
+SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
+	var This = this;
+	var store = grid.getStore();
+	var lines = csv.split("\n");
+	var not_imported = [];
+	for(var i=0; i<lines.length; i++) {
+		if(!lines[i]) continue;
+		var vals = lines[i].split(",");
+		var objlabel = vals[0].trim();
+		var qtylabel = vals[1].trim();
+		var oplabels = [];
+		var opstr = vals[2].trim();
+		if(opstr != '-' && opstr) {
+			oplabels = opstr.split("_of");
+		}
+		var internalvar = vals[3].trim();
+		var units = null;
+		var io = null;
+		if(vals.length > 4)
+			units = vals[4].trim();
+		if(vals.length > 5)
+			io = vals[5].trim();
+
+		var label = objlabel+"__";
+		for(var j=0; j<oplabels.length; j++) {
+			if(oplabels[j])
+				label += oplabels[j] + "_of_";
+		}
+		label += qtylabel;
+		
+		var sname = This.labelmap[label];
+		if(sname) {
+			sname.internalVariable = internalvar;
+			sname.note = io;
+			if(!store.getById(sname.id))
+				store.add(sname);
+		}
+		else {
+			if(!This.labelmap[objlabel]) 
+				not_imported[label] = "object " + objlabel;
+			else if(!This.labelmap[qtylabel])
+				not_imported[label] = "quantity " +qtylabel;
+			else {
+				for(var j=0; j<oplabels.length; j++)
+					if(oplabels[j] && !This.labelmap[oplabels[j]])
+						not_imported[label] = "operator " + oplabels[j];
+			}
+		}
+	}
+	var errorstr = "";
+	for(var label in not_imported)
+		errorstr += "<li>" + label + " ("+not_imported[label]+" not found)</li>";
+	if(errorstr) 
+		errorstr = "Could not import the following standard names:<br>" + errorstr;
+	return errorstr;
+};
+
 SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo, 
 		mainPanel, tab, savebtn, editable) {
     var This = this;
@@ -2169,7 +2282,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
         layout: 'border',
         bodyStyle:'padding:0px',
         border: false,
-        layout: 'auto',
+        //layout: 'auto',
         padding: 0,
         tabBar : {
 			items : [ {
@@ -2252,12 +2365,13 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
     	var repotab = new Ext.Panel({
             region: 'center',
     		title: repoid,
+    		layout: 'fit',
             border: false,
             defaults: {
                 border: false,
                 padding: 0
             },
-            autoScroll: true
+            //autoScroll: true
     	});
     	
         // Register store models
@@ -2349,7 +2463,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
 	        {
 	        	dataIndex: 'operatorIds',
 	            header: 'Operators',
-	            flex: 1,
+	            //flex: 1,
 	            editor: operatorEditor[repons],
 	            renderer: function (v) {
 	            	if(!v) return v;
@@ -2365,13 +2479,13 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
 	        {
 	        	dataIndex: 'internalVariable',
 	        	header: 'Internal Variable',
-	        	flex: 1,
+	        	//flex: 1,
 	        	editor: true
 	        },
 	        {
 	        	dataIndex: 'note',
 	        	header: 'Note',
-	        	flex: 1,
+	        	//flex: 1,
 	        	editor: true
 	        },
 	        {
@@ -2507,9 +2621,9 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
         if (editable) {
             tbar = [{
                 text: 'Add Standard Name',
-                iconCls: 'addIcon',
+                iconCls: 'icon-add fa fa-green',
                 handler: function() {
-                	var panel = this.up('panel');
+                	var panel = this.up('grid');
                     var gstore = panel.getStore();
                     var pos = gstore.getCount();
                     var sm = panel.getSelectionModel();
@@ -2521,17 +2635,62 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
                     });
                 }
             }, {
-                iconCls: 'delIcon',
+                iconCls: 'icon-del fa fa-red',
                 text: 'Delete',
                 roletype: i,
                 handler: function() {
-                	var panel = this.up('panel');
+                	var panel = this.up('grid');
                     var gstore = panel.getStore();
                     panel.editorPlugin.cancelEdit();
                     var s = panel.getSelectionModel().getSelection();
                     for (var i = 0, r; r = s[i]; i++) {
                     	gstore.remove(r);
                     }
+                }
+            }, '-', {
+            	xtype: 'tbfill'
+            }, {
+                iconCls: 'icon-download-cloud fa fa-browngrey',
+                text: 'Import from CSV',
+                roletype: i,
+                handler: function() {
+                	var grid = this.up('grid');
+                	Ext.create('Ext.window.Window', {
+                		title: 'Paste CSV data',
+                		layout: 'border',
+                        constrain: true,
+                        maximizable: true,
+                        autoScroll: true,
+                        width: '80%',
+                        height: '80%',
+                        defaults: {
+                        	margin: 5
+                        },
+                		items: [{
+            				xtype : 'button',
+            				region : 'south',
+            				text : 'Submit',
+            				handler : function() {
+            					var csv = this.up('window').down('textarea').getValue();
+            					var errorstr = This.importStandardNamesFromCSV(csv, grid);
+            					if(errorstr) {
+            						showError(errorstr);
+            					}
+            					this.up('window').close();
+            				}
+            			}, {
+                			xtype : 'form',
+                			region : 'center',
+                			layout : 'fit',
+                			frame : true,
+                			autoScroll : true,
+                			items : {
+                				xtype : 'textarea',
+                				flex: 1,
+                				anchor: '100%'
+                			}
+                		}]
+                	}).show();
                 }
             }];
         }
@@ -2612,12 +2771,12 @@ SoftwareViewer.prototype.initSoftwareTreePanelEvents = function() {
         // Fetch Store via Ajax
         var url = This.op_url + '/getSoftwareJSON?softwareid=' + escape(id);
         var guifn = This.openSoftwareEditor;
-        var icon = 'compIcon';
+        var icon = 'icon-component fa-title fa-orange';
         
         if(!rec.data.leaf) {
         	url = This.op_url + '/getSoftwareTypeJSON?typeid=' + escape(id);
         	guifn = This.openSoftwareTypeEditor;
-        	icon = 'dtypeIcon';
+        	icon = 'icon-folder-open fa-title fa-yellow';
         }
 
         var tab = This.openNewIconTab(tabName, icon);
@@ -2692,7 +2851,7 @@ SoftwareViewer.prototype.getAddSoftwareMenuItem = function() {
 	return {
 		itemId: 'createbutton',
 		text: 'Add Software',
-		iconCls: 'addIcon',
+		iconCls: 'icon-component fa-menu fa-orange',
 		handler: function() {
 	        This.addSoftware();
 	    }
@@ -2704,7 +2863,7 @@ SoftwareViewer.prototype.getAddSoftwareTypeMenuItem = function() {
 	return {
 		itemId: 'createtypebutton',
 		text: 'Add Software Type',
-		iconCls: 'dtypeIcon',
+		iconCls: 'icon-folder-open fa-menu fa-yellow',
 		handler: function() {
 	        This.addSoftwareType();
 	    }
@@ -2716,7 +2875,7 @@ SoftwareViewer.prototype.getImportMenuItem = function() {
 	return {
 		itemId: 'importbutton',
 		text: 'Import CSDMS Software',
-		iconCls: 'importIcon',
+		iconCls: 'icon-download-cloud fa-menu fa-browngrey',
 		handler: function() {
 	        This.importSoftware('CSDMS');
 	    }
@@ -2727,7 +2886,7 @@ SoftwareViewer.prototype.getDeleteMenuItem = function() {
     var This = this;
     return {
         text: 'Delete',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa-menu fa-red',
         handler: function() {
             var nodes = This.treePanel.getSelectionModel().getSelection();
             if (!nodes || !nodes.length || !nodes[0].parentNode)
@@ -2746,7 +2905,7 @@ SoftwareViewer.prototype.getRenameMenuItem = function() {
     var This = this;
     return {
         text: 'Rename',
-        iconCls: 'docsIcon',
+        iconCls: 'icon-edit fa-menu fa-browngrey',
         //FIXME: Get an "Edit" icon for this
         handler: function() {
             var nodes = This.treePanel.getSelectionModel().getSelection();
@@ -2793,20 +2952,11 @@ SoftwareViewer.prototype.initialize = function() {
     });
 
     this.treePanel = this.getSoftwareListTree();
+    Ext.apply(this.treePanel, {
+        title: 'Software'
+    });
     
     var This = this;
-    var tbar = null;
-    if (this.advanced_user) {
-        tbar = [{
-        	text: 'Add',
-    	    iconCls: 'addIcon',
-    	    menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
-    	          '-', This.getImportMenuItem()]
-        },
-        This.getRenameMenuItem(),
-        This.getDeleteMenuItem()];
-    }
-
     var leftPanel = new Ext.TabPanel({
         region: 'west',
         width: 250,
@@ -2814,11 +2964,6 @@ SoftwareViewer.prototype.initialize = function() {
         plain: true,
         margins: '5 0 5 5',
         activeTab: 0,
-        tbar: tbar
-    });
-
-    Ext.apply(this.treePanel, {
-        title: 'Software'
     });
 
     //this.store.types.sort();

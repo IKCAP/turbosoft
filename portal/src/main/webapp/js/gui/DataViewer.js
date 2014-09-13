@@ -267,7 +267,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     if (This.advanced_user) {
         var savebtn = new Ext.Button({
             text: 'Save Changes',
-            iconCls: 'saveIcon',
+            iconCls: 'icon-save fa fa-browngrey',
             disabled: true,
             handler: function() {
                 propmods.addedProperties = {};
@@ -329,7 +329,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     var uploadfilesbtn = {
             xtype: 'button',
             text: 'Upload Files ('+getLocalName(id)+')',
-            iconCls: 'uploadIcon',
+            iconCls: 'icon-upload fa fa-browngrey',
             handler: function() {
                 var win = new Ext.Window({
                     xtype: 'panel',
@@ -344,10 +344,10 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 						multi_selection: true,
 	                    width: 500,
 	                    height: 300,
-						addButtonCls : 'addIcon',
-						deleteButtonCls : 'delIcon',
-						uploadButtonCls : 'uploadIcon',
-						cancelButtonCls : 'delIcon',
+						addButtonCls : 'icon-add fa fa-green',
+						deleteButtonCls : 'icon-del fa fa-red',
+						uploadButtonCls : 'icon-upload fa fa-browngrey',
+						cancelButtonCls : 'icon-cancel fa fa-red',
                         listeners : {
                         	"uploadcomplete" : function(item, files) {
                         		This.addBatchData(files, id);
@@ -364,7 +364,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tbar = [uploadfilesbtn];
 		if (this.has_external_catalog)
 			tbar.push({
-				iconCls : 'importIcon',
+				iconCls : 'icon-download-cloud fa fa-browngrey',
 				text : 'Import from External Catalog',
 				handler: function() {
 	                var win = new Ext.Window({
@@ -411,7 +411,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tbar.push({xtype: 'tbfill'});
         tbar.push('-');
 		tbar.push({
-			iconCls : 'reloadIcon',
+			iconCls : 'icon-reload fa fa-green',
 			text : 'Reload File Type',
 			handler : function() {
 				tab.getLoader().load();
@@ -454,7 +454,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tbar = [];
         tbar.push({
             text: 'Add Property',
-            iconCls: 'addIcon',
+            iconCls: 'icon-add fa fa-green',
             handler: function() {
                 var p = new dataPropRange();
                 p.set('range', "xsd:string");
@@ -470,7 +470,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tbar.push('-');
         tbar.push({
             text: 'Delete Property',
-            iconCls: 'delIcon',
+            iconCls: 'icon-del fa fa-red',
             id: 'delProperty' + name,
             disabled: true,
             handler: function() {
@@ -761,7 +761,7 @@ DataViewer.prototype.openDataEditor = function(args) {
 
     var savebtn = new Ext.Button({
         text: 'Save Metadata',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-browngrey',
         disabled: true,
         handler: function() {
             var data = [];
@@ -784,7 +784,7 @@ DataViewer.prototype.openDataEditor = function(args) {
 
     var delbtn = new Ext.Button({
         text: 'Delete File',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa fa-red',
         handler: function() {
             This.confirmAndDeleteFile(id);
         }
@@ -834,7 +834,7 @@ DataViewer.prototype.openDataEditor = function(args) {
     var addfilebtn = {
         xtype: 'button',
         text: 'Set File',
-        iconCls: 'addIcon',
+        iconCls: 'icon-add fa fa-green',
         handler: function() {
             var win = new Ext.Window({
                 xtype: 'panel',
@@ -858,7 +858,7 @@ DataViewer.prototype.openDataEditor = function(args) {
                     }, {
                         xtype: 'button',
                         text: 'Submit',
-                        iconCls: 'addIcon',
+                        iconCls: 'icon-add fa fa-green',
                         handler: function() {
                         	var panel = this.up('panel');
                         	var loc = this.prev().value;
@@ -877,10 +877,10 @@ DataViewer.prototype.openDataEditor = function(args) {
                     	border: false,
                     	multipart_params: {type: 'data'},
                         url: This.upload_url,
-                        addButtonCls: 'addIcon',
-                        deleteButtonCls: 'delIcon',
+                        addButtonCls: 'icon-add fa fa-green',
+                        deleteButtonCls: 'icon-del fa fa-red',
                         uploadButtonCls: 'uploadIcon',
-                        cancelButtonCls: 'delIcon',
+                        cancelButtonCls: 'icon-del fa fa-red',
                         listeners : {
                         	"uploadcomplete" : function(item, files) {
                         		// Just check the first file (only one file upload allowed here)
@@ -899,7 +899,7 @@ DataViewer.prototype.openDataEditor = function(args) {
     if(!This.use_import_ui) {
 	    tbar = [ addfilebtn, 
 		{
-		    iconCls: 'downloadIcon',
+		    iconCls: 'icon-download fa fa-browngrey',
 		    itemId: 'downloadFile',
 		    text: 'Download File',
 		    disabled: !store.location,
@@ -910,7 +910,7 @@ DataViewer.prototype.openDataEditor = function(args) {
 	    },
 		{ xtype: 'tbfill' }, 
 		'-', {
-	        iconCls: 'reloadIcon',
+	        iconCls: 'icon-reload fa fa-green',
 	        text: 'Reload Metadata',
 	        handler: function() {
 	            tab.getLoader().load();
@@ -922,7 +922,7 @@ DataViewer.prototype.openDataEditor = function(args) {
     else {
     	tbar = [
     	{
-    		iconCls: 'importIcon',
+    		iconCls: 'icon-download-cloud fa fa-browngrey',
     		itemId: 'importFile',
     		text: 'Import into Local Catalog',
     		handler: function() {
@@ -960,7 +960,7 @@ DataViewer.prototype.getAddDatatypeMenuItem = function() {
     var This = this;
     return {
         text: 'Add File Type',
-        iconCls: 'dtypeIcon',
+        iconCls: 'icon-folder-open fa-menu fa-yellow',
         handler: function() {
             var nodes = This.dataTreePanel.getSelectionModel().getSelection();
             var node = (nodes && nodes.length) ? nodes[0] : null;
@@ -973,7 +973,7 @@ DataViewer.prototype.getAddDataMenuItem = function() {
     var This = this;
     return {
         text: 'Add File',
-        iconCls: 'dataIcon',
+        iconCls: 'icon-file-alt fa-menu fa-blue',
         handler: function() {
             var nodes = This.dataTreePanel.getSelectionModel().getSelection();
             var node = (nodes && nodes.length) ? nodes[0] : null;
@@ -986,7 +986,7 @@ DataViewer.prototype.getDeleteMenuItem = function() {
     var This = this;
     return {
         text: 'Delete',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa-menu fa-red',
         handler: function() {
             var nodes = This.dataTreePanel.getSelectionModel().getSelection();
             if (!nodes || !nodes.length || !nodes[0].parentNode)
@@ -1005,7 +1005,7 @@ DataViewer.prototype.getRenameMenuItem = function() {
     var This = this;
     return {
         text: 'Rename',
-        iconCls: 'docsIcon',
+        iconCls: 'icon-edit fa fa-browngrey',
         //FIXME: Get an "Edit" icon for this
         handler: function() {
             var nodes = This.dataTreePanel.getSelectionModel().getSelection();
@@ -1027,15 +1027,17 @@ DataViewer.prototype.getRenameMenuItem = function() {
 
 DataViewer.prototype.createDataTreeToolbar = function() {
     var This = this;
+    var delitem = This.getDeleteMenuItem();
+    delitem.iconCls = "icon-del fa fa-red";
     var toolbar = Ext.create('Ext.toolbar.Toolbar', {
         dock: 'top',
         items: [{
-            text: 'Add',
-            iconCls: 'addIcon',
-            menu: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
+            	text: 'Add',
+            	iconCls: 'icon-add fa fa-green',
+            	menu: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
             }, 
             This.getRenameMenuItem(), 
-            This.getDeleteMenuItem()]
+            delitem]
         });
     This.dataTreePanel.addDocked(toolbar);
     This.dataTreePanel.doComponentLayout();
@@ -1077,8 +1079,9 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
         border: true,
         autoScroll: true,
         rootVisible: false,
+        useArrows: true,
         title: 'Data',
-        iconCls: 'dataIcon',
+        iconCls: 'icon-file-alt fa-title fa-blue',
         containerScroll: true,
         store: This.dataTreeStore,
         url: This.op_url,
@@ -1090,6 +1093,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
                 appendOnly: true,
                 dragText: 'Drag File Type to its new Parent'
             },
+            stripeRows: true,
             listeners: {
                 itemcontextmenu: {
                     fn: This.onDataItemContextMenu,
@@ -1134,7 +1138,10 @@ DataViewer.prototype.handleTreeClick = function(view, rec, item, ind, event) {
     else
         url = this.op_url + '/getDataJSON?data_id=' + escape(id);
 
-    var tab = this.openNewIconTab(tabName, (rec.data.isClass ? 'dtypeIcon': 'dataIcon'));
+    var tab = this.openNewIconTab(tabName, (rec.data.isClass ? 
+    		(rec.raw.readonly ? 'icon-folder-open fa-title fa-grey' 
+    				: 'icon-folder-open fa-title fa-yellow' ) 
+    		: 'icon-file-alt fa-title fa-blue'));
 
     Ext.apply(tab, {
         path: path,
@@ -1163,7 +1170,7 @@ DataViewer.prototype.createMetricsTreeToolbar = function() {
         dock: 'top',
         items: [{
             text: 'Add',
-            iconCls: 'addIcon',
+            iconCls: 'icon-add fa fa-green',
             handler: function() {
                 var nodes = This.metricsTreePanel.getSelectionModel().getSelection();
                 var node = (nodes && nodes.length) ? nodes[0] : null;
@@ -1171,7 +1178,7 @@ DataViewer.prototype.createMetricsTreeToolbar = function() {
             }
         }, '-', {
             text: 'Delete',
-            iconCls: 'delIcon',
+            iconCls: 'icon-del fa fa-red',
             handler: function() {
                 var nodes = This.metricsTreePanel.getSelectionModel().getSelection();
                 if (!nodes || !nodes.length) {
@@ -1196,7 +1203,7 @@ DataViewer.prototype.createMetricsTreePanel = function(metricsHierarchy) {
         border: false,
         autoScroll: true,
         title: 'Metrics',
-        iconCls: 'dataIcon',
+        iconCls: 'icon-file-alt fa fa-blue',
         // TEMPORARY FIXME
         hidden: true,
         containerScroll: true,
@@ -1224,8 +1231,14 @@ DataViewer.prototype.getTree = function(data) {
         leaf: (item.type == 1 ? false: true),
         readonly: item.readonly,
         iconCls: (item.type == 1 
-        		? (item.readonly ? 'ontdtypeIcon' : 'dtypeIcon' ) 
-        		: 'dataIcon'),
+        		? (item.readonly ? 'icon-folder fa fa-grey' 
+        				: 'icon-folder fa fa-yellow' ) 
+        		: 'icon-file-alt fa fa-blue'),
+        expIconCls: (item.type == 1 
+                ? (item.readonly ? 'icon-folder-open fa fa-grey' 
+                		: 'icon-folder-open fa fa-yellow' ) 
+                : 'icon-file-alt fa fa-blue'),
+        		
         expanded: true,
         allowDrag: (item.type == 1 && !item.readonly),
         children: []
@@ -1631,7 +1644,7 @@ DataViewer.prototype.createLeftPanel = function() {
         region: 'west',
         // collapsible: true,
         // collapseMode: 'mini',
-        width: '20%',
+        width: '25%',
         plain: true,
         split: true,
         margins: '5 0 5 5',

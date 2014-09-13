@@ -49,7 +49,7 @@ CommunityViewer.prototype.openUserEditor = function(args) {
     
     var editbtn = new Ext.Button({
     	text: 'Edit',
-    	iconCls: 'docsIcon',
+    	iconCls: 'icon-edit fa fa-browngrey',
     	handler: function(btn) {
     		btn.up('panel').up('panel').getLayout().setActiveItem(1);
     	}
@@ -109,7 +109,7 @@ CommunityViewer.prototype.openUserEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-browngrey',
         disabled: true,
         handler: function(btn) {
         	var form = tab.down('form');
@@ -241,6 +241,8 @@ CommunityViewer.prototype.createLeftPanel = function() {
 	        root: This.getTree(This.store.users),
 	        sorters: ['text']
 	    }),
+	    useArrows: true,
+        viewConfig:{stripeRows:true},
 		listeners : {
 			itemclick : function(view, rec, item, ind, event) {
 				var id = rec.data.id;
@@ -262,7 +264,7 @@ CommunityViewer.prototype.createLeftPanel = function() {
 		        // Fetch Store via Ajax
 		        var url = This.op_url + '/getUserJSON?userid=' + escape(id);
 		        var guifn = This.openUserEditor;
-		        var icon = 'userIcon';
+		        var icon = 'icon-user fa fa-green';
 
 		        var tab = This.openNewIconTab(tabName, icon);
 		        Ext.apply(tab, {
@@ -323,7 +325,7 @@ CommunityViewer.prototype.getTree = function(users) {
 	    root.children.push({
 	            text: getLocalName(userid),
 	            id: userid,
-	            iconCls: 'userIcon',
+	            iconCls: 'icon-user fa-tree fa-green',
 	            leaf: true
 	        });
 	}

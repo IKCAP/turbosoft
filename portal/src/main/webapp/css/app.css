@@ -24,6 +24,49 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	opacity: 0.8;
 }
 
+.fa,
+.fa-menu,
+.fa-title
+{
+	top: -1px !important;
+	font-size: 14px !important;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.fa-small {
+	top: 0px !important;
+	font-size: 12px !important;
+}
+.fa-big {
+	top: 0px !important;
+	font-size: 18px !important;
+}
+.fa-tree {
+	font-size: 16px !important;
+}
+.fa-menu {
+	top: 5px !important;
+	font-size: 12px !important;
+}
+.fa-title {
+	font-size: 12px !important;
+	top: -2px !important;
+}
+.fa-white { color: white; }
+.fa-green { color: seagreen; }
+.fa-maroon { color: maroon;	}
+.fa-red { color: indianred;	}
+.fa-orange { color: #EEBB88; }
+.fa-gold { color: gold; }
+.fa-navy { color: navy;	}
+.fa-blue { color: steelblue; }
+.fa-browngrey { color: #996666; }
+.fa-yellow { color: #E2C77C; }
+.fa-grey { color: #999999;	}
+.fa-brown { color: peru; }
+
+/*
 .userIcon {
 	background-image: url(../images/user.png) !important
 }
@@ -198,7 +241,7 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 .user_default_domain {
 	padding-left: 20px;
 	background: url(../images/star.png) center left no-repeat !important
-}
+}*/
 
 .highlightIcon {
 	font-weight: bold !important;
@@ -206,7 +249,7 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	/*color: #CC1D33 !important;*/
 }
 
-.smSaveIcon {
+/*.smSaveIcon {
 	background: url(../images/smsave.gif) center left no-repeat !important;
 	font-weight: normal;
 	color: #666;
@@ -274,7 +317,7 @@ div.runtitle {
 
 .status_FAILURE {
 	background: url(../images/cross.png) center left no-repeat !important
-}
+}*/
 
 div.smallPropertyGrid input.x-form-field {
 	font-size: 11px !important;
@@ -359,6 +402,7 @@ li.active a {
 	border-right-width: 1px !important;
 }
 
+/*
 .tellmeteacher {
 	font-size: 14px;
 	font-weight: bold;
@@ -395,6 +439,7 @@ pre.tellmelog {
 	padding: 5px;
 	margin-top: 5px;
 }
+*/
 
 /*.x-border-layout-ct {
 	background-color: transparent !important;

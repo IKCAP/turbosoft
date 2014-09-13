@@ -4,7 +4,8 @@ import java.io.PrintWriter;
 
 public class CSSLoader {
   static String theme = "gray";
-  static String[] site_css = { "css/menu.css", "css/app.css" };
+  static String[] site_css = { "css/menu.css", "css/app.css"
+    , "css/fontello/css/wings-icons.css" };
   static String[] extjs_css = { "lib/extjs/resources/ext-theme-" + theme
       + "/ext-theme-" + theme + "-all.css" };
 
