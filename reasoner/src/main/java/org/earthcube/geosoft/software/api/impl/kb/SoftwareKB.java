@@ -24,6 +24,7 @@ import org.earthcube.geosoft.software.classes.SWPropertyValue;
 import org.earthcube.geosoft.software.classes.Software;
 import org.earthcube.geosoft.software.classes.SoftwareRole;
 import org.earthcube.geosoft.software.classes.SoftwareType;
+import org.earthcube.geosoft.software.classes.audit.DRAT;
 import org.earthcube.geosoft.software.classes.sn.SNAssumption;
 import org.earthcube.geosoft.software.classes.sn.SNObject;
 import org.earthcube.geosoft.software.classes.sn.SNOperator;
@@ -290,6 +291,13 @@ public class SoftwareKB implements SoftwareAPI {
                 objmap.put(ot.getPredicate().getName(), ot.getObject().getValue());
               }
               objval = objmap;
+              if(prop.getId().equals(this.ontns + "CodeFile")) {
+                if(objmap.containsKey("hasFileLocation")) {
+                  String res = DRAT.RESULTS.get(objmap.get("hasFileLocation"));
+                  if(res != null)
+                    software.setAuditResults(res);
+                }
+              }
             }
             else if(obj.isLiteral())
               objval = obj.getValue();
@@ -657,7 +665,6 @@ public class SoftwareKB implements SoftwareAPI {
             String note = (String) map.get("Note");
             String fname = floc.substring( floc.lastIndexOf('/')+1, floc.length() );
             
-            // FIXME: Get this from a config property
             URL tika = new URL(tikaUrl);
             URL furl = new URL(floc);
             
@@ -720,6 +727,35 @@ public class SoftwareKB implements SoftwareAPI {
       e.printStackTrace();
     }
     return software;
+  }
+  
+  @Override
+  public boolean runAuditTool(Software software, String dratHome) {
+    try {
+      if(DRAT.BUSY)
+        return false;
+      
+      // - Change to use a proper DRAT API ?
+      for(SWPropertyValue mpv : software.getPropertyValues()) {
+        if(mpv.getPropertyId().equals(this.ontns+"CodeFile")) {
+          if(mpv.getValue() instanceof HashMap) {
+            // If value is a complex gson object
+            @SuppressWarnings("rawtypes")
+            HashMap map = (HashMap) mpv.getValue();
+            String floc = (String) map.get("hasFileLocation");
+            String note = (String) map.get("Note");
+            
+            DRAT drat = new DRAT(floc, note, dratHome);
+            drat.start();
+            return true;
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
   }
   
   @Override

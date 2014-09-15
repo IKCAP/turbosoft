@@ -92,6 +92,10 @@ public class DescribeSoftware extends HttpServlet {
         if (!config.isSandboxed()) {
           out.print(mc.checkCode(id));
         }
+      } else if (op.equals("runAuditTool")) {
+        if (!config.isSandboxed())
+          if(mc.runAuditTool(softwareid))
+            out.print("OK");
       } else if (op.equals("addSoftware")) {
         String software_typeid = request.getParameter("software_typeid");
 				if (!config.isSandboxed())

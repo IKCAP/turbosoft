@@ -85,6 +85,8 @@ public interface SoftwareAPI {
   
   String checkCode(String id);
   
+  boolean runAuditTool(Software software, String dratHome);
+  
   // Saving
   boolean save();
 

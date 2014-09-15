@@ -27,13 +27,14 @@ import org.earthcube.geosoft.portal.classes.importer.ImporterFactory;
 import org.earthcube.geosoft.portal.classes.importer.api.ImportAPI;
 import org.earthcube.geosoft.software.SoftwareFactory;
 import org.earthcube.geosoft.software.api.SoftwareAPI;
+import org.earthcube.geosoft.software.classes.SWPropertyValue;
 import org.earthcube.geosoft.software.classes.Software;
 import org.earthcube.geosoft.software.classes.SoftwareType;
 
 @SuppressWarnings("unused")
 public class SoftwareController {
   private int guid;
-  private String domns;
+  private String ontns;
   private String libns;
   private String liburl;
 
@@ -62,7 +63,7 @@ public class SoftwareController {
       api.loadStandardNamesOntology(snrepo, snprops.get(snrepo));
     }
     
-    this.domns = (String) props.get("ont.software.url") + "#";
+    this.ontns = (String) props.get("ont.software.url") + "#";
     this.liburl = (String) props.get("lib.software.url");
     this.libns = this.liburl + "#";
 
@@ -107,7 +108,7 @@ public class SoftwareController {
           + " }, "
           + "'" + config.getScriptPath() + "', "
           + "'" + this.uploadScript + "', "
-          + "'" + this.domns + "', "
+          + "'" + this.ontns + "', "
           + "'" + this.liburl + "', "
           + !isSandboxed
           + ");\n"
@@ -314,5 +315,15 @@ public class SoftwareController {
     } finally {
       api.end();
     }
+  }
+  
+  public boolean runAuditTool(String softwareid) {
+    Software sw = this.api.getSoftware(softwareid, true);
+    // Run DRAT to analyze licenses
+    String dratHome = this.config.getMiscPropertyValue("dratHome");
+    if(dratHome != null) {
+      return this.api.runAuditTool(sw, dratHome);
+    }
+    return false;
   }
 }

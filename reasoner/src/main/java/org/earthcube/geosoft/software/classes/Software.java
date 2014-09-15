@@ -20,6 +20,8 @@ public class Software extends URIEntity {
   ArrayList<SNAssumption> assumptions;
   ArrayList<StandardName> standardnames;
   
+  String auditResults;
+  
   public Software(String id, String classId) {
     super(id);
     this.classId = classId;
@@ -98,5 +100,13 @@ public class Software extends URIEntity {
 
   public void addStandardName(StandardName standardname) {
     this.standardnames.add(standardname);
+  }
+
+  public String getAuditResults() {
+    return auditResults;
+  }
+
+  public void setAuditResults(String auditResults) {
+    this.auditResults = auditResults;
   }
 }

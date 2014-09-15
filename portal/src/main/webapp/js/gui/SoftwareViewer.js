@@ -754,38 +754,42 @@ SoftwareViewer.prototype.createSoftwareFromForm = function (form, softwareid, cl
 	var notok = false;
 	var This = this;
 	var inputGrid = form.down('grid[type=input]');
-    inputGrid.getStore().each(function(rec) {
-        if (!rec.data.role || !rec.data.type) {
-        	if(!rec.data.role) message += "Input Name not specified.. ";
-        	if(!rec.data.type) message += "Input Type not specified.. ";
-            notok = true;
-        }
-        else if(names[rec.data.role]) {
-        	message += "Duplicate role name found: "+rec.data.role;
-        	notok = true;
-        }
-        else {
-        	names[rec.data.role] = 1;
-        	software.inputs.push(This.prepareRoleRecord(rec.data, false));
-        }
-    });
+	if(inputGrid) {
+	    inputGrid.getStore().each(function(rec) {
+	        if (!rec.data.role || !rec.data.type) {
+	        	if(!rec.data.role) message += "Input Name not specified.. ";
+	        	if(!rec.data.type) message += "Input Type not specified.. ";
+	            notok = true;
+	        }
+	        else if(names[rec.data.role]) {
+	        	message += "Duplicate role name found: "+rec.data.role;
+	        	notok = true;
+	        }
+	        else {
+	        	names[rec.data.role] = 1;
+	        	software.inputs.push(This.prepareRoleRecord(rec.data, false));
+	        }
+	    });
+	}
     
 	var outputGrid = form.down('grid[type=output]');
-    outputGrid.getStore().each(function(rec) {
-        if (!rec.data.role || !rec.data.type) {
-        	if(!rec.data.role) message += "Output Name not specified.. ";
-        	if(!rec.data.type) message += "Output Type not specified.. ";
-            notok = true;
-        }
-        else if(names[rec.data.role]) {
-        	message += "Duplicate role name found: "+rec.data.role;
-        	notok = true;
-        }
-        else {
-        	names[rec.data.role] = 1;
-        	software.outputs.push(This.prepareRoleRecord(rec.data, false));
-        }
-    });
+	if(outputGrid) {
+	    outputGrid.getStore().each(function(rec) {
+	        if (!rec.data.role || !rec.data.type) {
+	        	if(!rec.data.role) message += "Output Name not specified.. ";
+	        	if(!rec.data.type) message += "Output Type not specified.. ";
+	            notok = true;
+	        }
+	        else if(names[rec.data.role]) {
+	        	message += "Duplicate role name found: "+rec.data.role;
+	        	notok = true;
+	        }
+	        else {
+	        	names[rec.data.role] = 1;
+	        	software.outputs.push(This.prepareRoleRecord(rec.data, false));
+	        }
+	    });
+	}
     
 	var assGrids = form.query('grid[type=assumptions]');
 	for(var i=0; i<assGrids.length; i++) {
@@ -1223,6 +1227,52 @@ SoftwareViewer.prototype.getSuperClasses = function(clsid, clsnode, supers) {
 	return null;
 };
 
+SoftwareViewer.prototype.getSoftwareComboBox = function(mstore) {
+	var This = this;
+    
+	if(!this.version_store) {
+		this.version_store = Ext.create('Ext.data.Store', {
+			fields : [ 'id', 'classId', 
+			{name:'groupDisplay',
+				convert: function (val, model) {
+					return getLocalName(model.get('classId'));
+				}
+			}, 
+			{name:'softwareDisplay',
+				convert: function (val, model) {
+					return getLocalName(model.get('id'));
+				}
+			}],
+			groupers : 'classId',
+			sorters : ['groupDisplay', 'softwareDisplay'],
+			data: This.store.softwares
+		});
+	}
+
+	var tpl = new Ext.XTemplate(
+			'<tpl for=".">',
+			'<tpl if="this.classId != values.classId">',
+			'<tpl exec="this.classId = values.classId"></tpl>',
+			'<div class="x-panel-header-default x-panel-header-text-container ' 
+			+ 'x-panel-header-text x-panel-header-text-default">'
+			+ '{groupDisplay}</div>',
+			'</tpl>',
+			'<div class="x-boundlist-item">{softwareDisplay}</div>',
+			'</tpl>'
+	);
+
+	return {
+		xtype: 'combo',
+		store: This.version_store,
+		queryMode: 'local',
+		multiSelect: true,
+		displayField: 'softwareDisplay',
+		groupField: 'classId',
+		valueField: 'id',
+		tpl: tpl
+	};
+};
+
 SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab, savebtn, editable) {
 	var editorPanel = {
 		xtype: 'form',
@@ -1255,6 +1305,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	};
 	editorPanel.items.push(editorTabPanel);
 	
+	var auditResults = store.auditResults;
 	var propContainer = {};
 	var sectionById = {};
 	var propLabels = {};
@@ -1341,7 +1392,9 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 						xtype: 'panel',
 						title: prop.label,
 				        frame:true,
-				        layout: (prop.label == "Description" ? 'fit': 'form'),
+				        layout: (prop.label == "Description" ||
+				        		prop.label == "Usability"
+				        			? 'fit': 'form'),
 				        bodyStyle:'padding:5px',
 				        margin: 5,
 						autoScroll: true,
@@ -1358,6 +1411,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	var ioEditor = propContainer['I/O'];
 	var asEditor = propContainer['Assumptions'];
 	var snEditor = propContainer['Standard Names'];
+	var dpEditor = propContainer['Dependencies'];
 	if(ioEditor)
 		this.getIOListEditor(id, store, this.store.data_types, 
 				ioEditor, maintab, savebtn, editable);
@@ -1367,7 +1421,13 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	if(snEditor)
 		this.getStandardNamesEditor(id, store, this.store.sninfo, 
 				snEditor, maintab, savebtn, editable);
-		
+	
+	if(dpEditor) {
+		Ext.apply(dpEditor, {
+			iconCls: 'icon-dropbox fa-title fa-browngrey'
+		});
+	}
+	
 	// Create sections (if needed)
 	for(var i=0; i<props.length; i++) {
 		var prop = props[i];
@@ -1438,7 +1498,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			            menuDisabled: true,
 			            flex: 1,
 			            editor: true,
-						// TODO: Editor should be the uploader
+						// TODO: Editor should be the uploader ?
 			            /*editor: new Ext.form.field.Trigger({
 		                    onTriggerClick: function() {
 								// Open up upload window
@@ -1544,6 +1604,82 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	                    }
 	                }
 	            }];
+				if(prop.label == "Code") {
+					filegrid.tbar.push({xtype: 'tbfill'}, '-');
+					if(auditResults) {
+						var lines = auditResults.split("\n");
+						var resStore = {};
+						var headers = [];
+						for(var x=0; x<lines.length; x++) {
+							var cols = lines[x].split(",");
+							for(var y=0; y<cols.length; y++) {
+								if(x==0)
+									headers[y] = cols[y];
+								else 
+									resStore[headers[y]] = cols[y];
+							}
+						}
+						
+						filegrid.tbar.push({
+							iconCls: 'icon-runAlt fa fa-browngrey',
+							text: 'Get Audit Results',
+							handler: function() {
+			                	Ext.create('Ext.window.Window', {
+			                		title: 'DRAT results',
+			                		layout : 'border',
+		                            constrain : true,
+		                            maximizable : true,
+		                            frame : false,
+		                            border : false,
+		                            autoScroll : true,
+		                            width : 250,
+		                            height : 250,
+		                            items: {
+		                                xtype: 'propertygrid',
+		                                region: 'center',
+		                                source: resStore,
+		                                listeners: {
+		                                    'beforeedit': {
+		                                        fn: function () {
+		                                            return false;
+		                                        }
+		                                    }
+		                                }
+			                		}
+			                	}).show();
+							}
+						})
+					}
+					else {
+						filegrid.tbar.push({
+							iconCls: 'icon-runAlt fa fa-browngrey',
+							text: 'Run Audit Tool (DRAT)',
+							handler: function() {
+								Ext.get(maintab.getId()).mask("Submitting Audit job..");
+								Ext.Ajax.request({
+									url: This.op_url+'/runAuditTool',
+									params: {
+										softwareid: id
+									},
+									success: function(response) {
+										Ext.get(maintab.getId()).unmask();
+										if (response.responseText == "OK") {
+											showInfo('Audit job submitted.');
+										} else {
+											showError('Cannot run DRAT right now.' 
+													+ 'Try later');
+											_console(response.responseText);
+										}
+									},
+									failure: function(response) {
+										Ext.get(maintab.getId()).unmask();
+										_console(response.responseText);
+									}
+								});
+							}
+						});
+					}
+				}
 				
 				comp.items.push(filegrid);
 			}
@@ -1568,20 +1704,26 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 						}
 					}
 				};
+				var align = '';
 				if(prop.isObjectProperty) {
-					var store = new Ext.data.Store({
-						fields: ['value'],
-						sorters: ['value'],
-						data: Ext.Array.map (prop.possibleValues, function (x) {
-							return {id: x, value: getLocalName(x)};
-						}, this)
-					});
-					item.xtype = 'combo';
-					item.store = store;
-					item.multiSelect = true;
-					item.displayField = 'value';
-					item.valueField = 'id';
-					item.forceSelection = true;
+					if(prop.id == This.ns[''] + 'requiresSoftware') {
+						Ext.apply(item, This.getSoftwareComboBox());
+					}
+					else {
+						var store = new Ext.data.Store({
+							fields: ['value'],
+							sorters: ['value'],
+							data: Ext.Array.map (prop.possibleValues, function (x) {
+								return {id: x, value: getLocalName(x)};
+							}, this)
+						});
+						item.xtype = 'combo';
+						item.store = store;
+						item.multiSelect = true;
+						item.displayField = 'value';
+						item.valueField = 'id';
+						item.forceSelection = true;
+					}
 				}
 				else if(prop.range == this.ns['xsd'] + "int") {
 					item.xtype = 'numberfield';
@@ -1591,14 +1733,19 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 					item.xtype = 'numberfield';
 					item.allowDecimals = false;
 				}
+				else if(prop.range == this.ns['xsd'] + "float") {
+					item.xtype = 'numberfield';
+					item.allowDecimals = true;
+				}
 				else if(prop.range == this.ns['xsd'] + "boolean") {
 					item.xtype = 'checkbox';
 					item.checked = Boolean(item.value);
 				}
 				else if(prop.range == this.ns['xsd'] + "date")
 					item.xtype = 'datefield';
-				else if(prop.label && prop.label.match(/descri/i)) {
+				else if(prop.label && prop.label.match(/descri|comment/i)) {
 					item.xtype = 'textareafield';
+					align = 'stretch';
 					item.flex = 1;
 					item.rows = 8;
 				}
@@ -1619,7 +1766,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 					//layout: 'hbox',
 					layout: {
 						type: 'hbox',
-						align: 'stretch'
+						align: align
 					},
 					padding: 3,
 					border: false,
@@ -1696,7 +1843,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
     	xtype: 'tabpanel',
         region: 'center',
         layout: 'border',
-        iconCls: 'icon-param fa fa-browngrey',
+        iconCls: 'icon-param fa-title fa-browngrey',
         bodyStyle:'padding:0px',
         layout: 'auto',
         border: false,
@@ -1859,7 +2006,8 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
             border: false,
             // forceFit: true,
             title: (i == 0 ? 'Inputs': 'Outputs'),
-            iconCls: (i == 0 ? 'icon-input fa fa-blue': 'icon-output fa fa-brown'),
+            iconCls: (i == 0 ? 'icon-input fa-title fa-blue': 
+            	'icon-output fa-title fa-brown'),
             type: !i ? 'input' : 'output',
             columns: columns,
             selModel: sm,
@@ -1906,6 +2054,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
         region: 'center',
         layout: 'border',
         bodyStyle:'padding:0px',
+        iconCls: 'icon-tasks fa-title fa-browngrey',
         border: false,
         layout: 'auto',
         padding: 0,
@@ -2225,11 +2374,16 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 		var vals = lines[i].split(",");
 		var objlabel = vals[0].trim();
 		var qtylabel = vals[1].trim();
+		
 		var oplabels = [];
 		var opstr = vals[2].trim();
-		if(opstr != '-' && opstr) {
-			oplabels = opstr.split("_of");
+		if(opstr != '-' && opstr != '_') {
+			var opstrs = opstr.split(';');
+			for(var j=0; j<opstrs.length; j++) {
+				oplabels.push(opstrs[j].trim().replace(/_of$/, ''));
+			}	
 		}
+
 		var internalvar = vals[3].trim();
 		var units = null;
 		var io = null;
@@ -2237,7 +2391,7 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 			units = vals[4].trim();
 		if(vals.length > 5)
 			io = vals[5].trim();
-
+		
 		var label = objlabel+"__";
 		for(var j=0; j<oplabels.length; j++) {
 			if(oplabels[j])
@@ -2253,13 +2407,14 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 				store.add(sname);
 		}
 		else {
+			not_imported[label] = "name "+label;
 			if(!This.labelmap[objlabel]) 
 				not_imported[label] = "object " + objlabel;
 			else if(!This.labelmap[qtylabel])
 				not_imported[label] = "quantity " +qtylabel;
 			else {
 				for(var j=0; j<oplabels.length; j++)
-					if(oplabels[j] && !This.labelmap[oplabels[j]])
+					if(!This.labelmap[oplabels[j]])
 						not_imported[label] = "operator " + oplabels[j];
 			}
 		}
@@ -2281,6 +2436,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
         region: 'center',
         layout: 'border',
         bodyStyle:'padding:0px',
+        iconCls: 'icon-table fa-title fa-browngrey',
         border: false,
         //layout: 'auto',
         padding: 0,
@@ -2959,7 +3115,7 @@ SoftwareViewer.prototype.initialize = function() {
     var This = this;
     var leftPanel = new Ext.TabPanel({
         region: 'west',
-        width: 250,
+        width: 270,
         split: true,
         plain: true,
         margins: '5 0 5 5',

@@ -93,6 +93,16 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesObjectProperty -->
+
+    <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesObjectProperty">
+        <rdfs:label>Dependencies</rdfs:label>
+        <rdfs:comment>{ ui: {position:0} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ExtraSoftwareObjectProperty -->
 
     <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ExtraSoftwareObjectProperty">
@@ -271,7 +281,7 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestingSWObjectProperty -->
 
     <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestingSWObjectProperty">
-        <rdfs:label>Unit tests</rdfs:label>
+        <rdfs:label>Example I/O</rdfs:label>
         <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareObjectProperty"/>
     </owl:ObjectProperty>
@@ -281,7 +291,7 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#UnitTestFile -->
 
     <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#UnitTestFile">
-        <rdfs:label>Unit Test Files</rdfs:label>
+        <rdfs:label>Example I/O</rdfs:label>
         <rdfs:comment>{ ui: {position:1, isfile:true, multiple:true, extra: [&apos;forParameter&apos;, &apos;Note&apos;] } }</rdfs:comment>
         <rdfs:range rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestFile"/>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestingSWObjectProperty"/>
@@ -385,6 +395,17 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresSoftware -->
+
+    <owl:ObjectProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresSoftware">
+        <rdfs:label>Requires Software</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesObjectProperty"/>
+        <rdfs:range rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Software"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
@@ -403,6 +424,134 @@
         <rdfs:comment>{ ui: {section:1, position:1, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SummaryProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsCSVExport -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsCSVExport">
+        <rdfs:label>CSV export</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataExport"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsCoreMetadata -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsCoreMetadata">
+        <rdfs:label>Core Metadata</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMetadataCollected"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataExport -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataExport">
+        <rdfs:label>Data Export</rdfs:label>
+        <rdfs:comment>{ ui: {position:4} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty">
+        <rdfs:comment>{ui: {tabs: true, includes: [&apos;App&apos;]}}</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDevices -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDevices">
+        <rdfs:label>Devices</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsPlatform"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMaps -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMaps">
+        <rdfs:label>Maps</rdfs:label>
+        <rdfs:comment>{ ui: {position:5} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMetadataCollected -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMetadataCollected">
+        <rdfs:label>Metadata Collected</rdfs:label>
+        <rdfs:comment>{ ui: {position:3} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOS -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOS">
+        <rdfs:label>Operating System</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsPlatform"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOtherExportFormats -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOtherExportFormats">
+        <rdfs:label>Other export formats</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataExport"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOtherMetadata -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsOtherMetadata">
+        <rdfs:label>Other metadata collected</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMetadataCollected"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsPlatform -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsPlatform">
+        <rdfs:label>Platform</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUsability -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUsability">
+        <rdfs:label>Usability</rdfs:label>
+        <rdfs:comment>{ ui: {position:7} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUserInput -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUserInput">
+        <rdfs:label>User input</rdfs:label>
+        <rdfs:comment>{ ui: {position:6} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
     </owl:DatatypeProperty>
     
 
@@ -478,6 +627,16 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ConnectionAssumptionProperty -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ConnectionAssumptionProperty">
+        <rdfs:label>Connection Assumptions</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ContactProperty -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ContactProperty">
@@ -527,6 +686,36 @@
         <rdfs:comment>{ ui: {section:2, position:2, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ComponentProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DataConnForInit -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DataConnForInit">
+        <rdfs:label>Data connection required for initialization</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ConnectionAssumptionProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DataConnForOp -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DataConnForOp">
+        <rdfs:label>Data connection required for operation</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ConnectionAssumptionProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesProp -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesProp">
+        <rdfs:label>Dependencies</rdfs:label>
+        <rdfs:comment>{ ui: {position:0} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareProperty"/>
     </owl:DatatypeProperty>
     
 
@@ -588,6 +777,16 @@
         <rdfs:comment>{ ui: {position:10, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ContactProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#EnterNewFields -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#EnterNewFields">
+        <rdfs:label>Enter new fields</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUserInput"/>
     </owl:DatatypeProperty>
     
 
@@ -794,6 +993,16 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ManualOverride -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ManualOverride">
+        <rdfs:label>Manual override of values</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUserInput"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ManualURL -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ManualURL">
@@ -801,6 +1010,16 @@
         <rdfs:comment>{ ui: {section:2, position:2, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#OtherProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MapFormat -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MapFormat">
+        <rdfs:label>Map format</rdfs:label>
+        <rdfs:comment>{ ui: {position:3} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMaps"/>
     </owl:DatatypeProperty>
     
 
@@ -1067,16 +1286,6 @@
     
 
 
-    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RuntimeDependencyDescription -->
-
-    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RuntimeDependencyDescription">
-        <rdfs:label>Describe Runtime Dependencies</rdfs:label>
-        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareAvailability -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareAvailability">
@@ -1126,18 +1335,6 @@
     
 
 
-    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SourceCode -->
-
-    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SourceCode">
-        <rdfs:label>Source web address</rdfs:label>
-        <rdfs:comment>{ ui: {position:14, show_if:{}} }</rdfs:comment>
-        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsProperty"/>
-        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsSWProperty"/>
-        <rdfs:range rdf:resource="&xsd;string"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SourceCodeIsAvailable -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SourceCodeIsAvailable">
@@ -1175,6 +1372,26 @@
         <rdfs:label>Summary</rdfs:label>
         <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#ModelPackageProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SupportsMapsOffline -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SupportsMapsOffline">
+        <rdfs:label>Supports maps offline</rdfs:label>
+        <rdfs:comment>{ ui: {position:1} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMaps"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SupportsStereonet -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SupportsStereonet">
+        <rdfs:label>Supports stereonet</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsMaps"/>
     </owl:DatatypeProperty>
     
 
@@ -1233,7 +1450,7 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestingSWProperty -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TestingSWProperty">
-        <rdfs:label>Unit tests</rdfs:label>
+        <rdfs:label>Example I/O</rdfs:label>
         <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SoftwareProperty"/>
     </owl:DatatypeProperty>
@@ -1258,6 +1475,15 @@
         <rdfs:comment>{ ui: {position:17, show_if:{}} }</rdfs:comment>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#TechnicalSpecsProperty"/>
         <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#UsabilityComments -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#UsabilityComments">
+        <rdfs:label>Usability comments</rdfs:label>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#AppsUsability"/>
     </owl:DatatypeProperty>
     
 
@@ -1381,6 +1607,39 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#needs64Bit -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#needs64Bit">
+        <rdfs:label>Needs 64-bit machine</rdfs:label>
+        <rdfs:comment>{ ui: {position:4} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesProp"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresMemoryGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresMemoryGB">
+        <rdfs:label>Requires Memory (GB)</rdfs:label>
+        <rdfs:comment>{ ui: {position:2} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesProp"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresStorageGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#requiresStorageGB">
+        <rdfs:label>Requires Storage (GB)</rdfs:label>
+        <rdfs:comment>{ ui: {position:3} }</rdfs:comment>
+        <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#DependenciesProp"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#timestamp -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#timestamp">
@@ -1432,6 +1691,18 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#File -->
 
     <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#File"/>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileOS -->
+
+    <owl:Class rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileOS"/>
     
 
 
@@ -1661,6 +1932,14 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Android -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Android">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileOS"/>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#BSDv2 -->
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#BSDv2">
@@ -1680,6 +1959,14 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Binary -->
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Binary"/>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Blackberry -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Blackberry">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
+    </owl:NamedIndividual>
     
 
 
@@ -1767,6 +2054,14 @@
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Global">
         <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SpatialScales"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Google_Nexus -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Google_Nexus">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
     </owl:NamedIndividual>
     
 
@@ -1859,6 +2154,14 @@
     
 
 
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Nokia -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Nokia">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Python -->
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Python">
@@ -1879,6 +2182,14 @@
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Regional-Scale">
         <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#SpatialScales"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Samsung_Galaxy -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Samsung_Galaxy">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
     </owl:NamedIndividual>
     
 
@@ -1933,6 +2244,38 @@
 
     <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Windows">
         <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#OperatingSystem"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Windows_Mobile -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Windows_Mobile">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileOS"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iOS -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iOS">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileOS"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iPad -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iPad">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iPhone -->
+
+    <owl:NamedIndividual rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#iPhone">
+        <rdf:type rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#MobileDevices"/>
     </owl:NamedIndividual>
 </rdf:RDF>
 

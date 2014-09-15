@@ -27,6 +27,7 @@ public class Config {
   private String softwareOntologyUrl;
   private String dataOntologyUrl;
   private String communityOntologyUrl;
+  private String resourceOntologyUrl;
   private HashMap<String, String> miscProperties;
   
   private String defaultStorageDir = ".turbosoft";
@@ -89,6 +90,7 @@ public class Config {
     this.softwareOntologyUrl = serverConfig.getString("ontology.software");
     this.dataOntologyUrl = serverConfig.getString("ontology.data");
     this.communityOntologyUrl = serverConfig.getString("ontology.community");
+    this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
     if(this.communityOntologyUrl == null)
       this.communityOntologyUrl = ontdirurl + "/community.owl";
     
@@ -188,6 +190,7 @@ public class Config {
     props.setProperty("rules.software.url", ontdirurl + "/software.rules");
     props.setProperty("ont.software.url", this.softwareOntologyUrl);
     props.setProperty("ont.data.url", this.dataOntologyUrl);
+    props.setProperty("ont.resource.url", this.resourceOntologyUrl);
     props.setProperty("ont.community.url", this.communityOntologyUrl);
 
     props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
@@ -218,6 +221,14 @@ public class Config {
     this.communityOntologyUrl = communityOnologyUrl;
   }
   
+  public String getResourceOntologyUrl() {
+    return resourceOntologyUrl;
+  }
+
+  public void setResourceOntologyUrl(String resourceOntologyUrl) {
+    this.resourceOntologyUrl = resourceOntologyUrl;
+  }
+
   public String getConfigFile() {
     return configFile;
   }

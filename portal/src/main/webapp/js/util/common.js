@@ -114,7 +114,7 @@ function getPortalHeader(path) {
 			{
 				id : "app-north",
 				region : 'north',
-				height : 87,
+				height : 60,
 				layout : {
 					type : "vbox",
 					align : "stretch"
@@ -125,7 +125,7 @@ function getPortalHeader(path) {
 							bodyStyle : "background-color: transparent",
 							border : false,
 							region : 'north',
-							height : 61,
+							height : 36,
 							layout : 'fit',
 							items : [ {
 								border : false,
@@ -138,7 +138,7 @@ function getPortalHeader(path) {
 							id : "app-menu",
 							border : false,
 							xtype : "component",
-							height : 26,
+							height : 24,
 							html : "<div class=\"menu\">"
 									+ "<ul>"
 									+ "<li class=\"first active\"><a href=\""+path+"\">Home</a></li>"
