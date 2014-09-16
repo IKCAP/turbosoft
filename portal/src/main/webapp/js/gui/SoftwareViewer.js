@@ -2403,6 +2403,7 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 		var sname = This.labelmap[label];
 		if(sname) {
 			sname.internalVariable = internalvar;
+			sname.note = '';
 			if(units && io)
 				sname.note = units+", "+io;
 			if(!store.getById(sname.id))
