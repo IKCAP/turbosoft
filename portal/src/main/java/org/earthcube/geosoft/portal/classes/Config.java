@@ -105,12 +105,14 @@ public class Config {
     }
     
     this.miscProperties = new HashMap<String, String>();
+    if(serverConfig.containsKey("misc")) {
     SubnodeConfiguration misc = serverConfig.configurationAt("misc");
-    for(@SuppressWarnings("unchecked")
-    Iterator<String> it = misc.getKeys(); it.hasNext(); ) {
-      String key = it.next();
-      String value = misc.getString(key);
-      this.miscProperties.put(key,  value);
+      for(@SuppressWarnings("unchecked")
+      Iterator<String> it = misc.getKeys(); it.hasNext(); ) {
+        String key = it.next();
+        String value = misc.getString(key);
+        this.miscProperties.put(key,  value);
+      }
     }
   }
 
@@ -165,9 +167,15 @@ public class Config {
     config.addProperty("storage.local", storageDir);
     config.addProperty("storage.tdb", storageDir + File.separator + "TDB");
     config.addProperty("server", server);
+    
     config.addProperty("ontology.software", ontdirurl + "/software.owl");
     config.addProperty("ontology.data", ontdirurl + "/data.owl");
+    config.addProperty("ontology.resource", ontdirurl + "/resource.owl");
     config.addProperty("ontology.community", ontdirurl + "/community.owl");
+    
+    config.addProperty("misc.tikaUrl", "http://[Tika Server]/detect/stream");
+    config.addProperty("misc.solrUrl", "http://[Solr Server]/solr");
+    config.addProperty("misc.dratHome", "/path/to/drat");
     
     config.addProperty("ontology.standard_names.CSDMS", ontdirurl + "/CSDMS.owl");
 
@@ -190,7 +198,8 @@ public class Config {
     props.setProperty("rules.software.url", ontdirurl + "/software.rules");
     props.setProperty("ont.software.url", this.softwareOntologyUrl);
     props.setProperty("ont.data.url", this.dataOntologyUrl);
-    props.setProperty("ont.resource.url", this.resourceOntologyUrl);
+    if(this.resourceOntologyUrl != null)
+      props.setProperty("ont.resource.url", this.resourceOntologyUrl);
     props.setProperty("ont.community.url", this.communityOntologyUrl);
 
     props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
