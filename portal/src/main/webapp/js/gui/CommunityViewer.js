@@ -67,7 +67,7 @@ CommunityViewer.prototype.openUserEditor = function(args) {
 		}, {
 			xtype: 'grid',
 			region: 'center',
-			title: 'Current Contributions',
+			title: 'Contributions',
 			store: {
 				data: allStore.user_contributions,
 				model: 'UserContribution',

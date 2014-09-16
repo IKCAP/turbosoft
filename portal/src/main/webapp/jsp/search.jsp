@@ -5,6 +5,24 @@
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 
+	<style>
+		.ui-tabs-anchor, 
+		input.ui-button
+		{
+			font-size: 11px !important;
+			padding: .25em 0.5em;
+		}
+		.ui-tabs .ui-tabs-panel {
+			padding: 0.5em 0.25em;
+		}
+		form {
+			margin-bottom: 0.5em;
+		}
+		.ui-accordion .ui-accordion-header {
+			padding-top: .1em;
+			padding-bottom: .1em;
+		}
+	</style>
 	<script>
 	$(function() {
 
@@ -388,8 +406,8 @@
 			<input id="basicwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="basicindent" name="indent" type="text" class="hidden" value="true" />
 
-			<input id="basictext" type="text" style="width:80%;" />
-			<input id="basicsubmit" type="submit" style="width:19%" />
+			<input id="basictext" type="text" style="width:100%;" />
+			<input id="basicsubmit" type="submit" style="width:50%;" />
 
 			<div class="debug">
 				<hr/>

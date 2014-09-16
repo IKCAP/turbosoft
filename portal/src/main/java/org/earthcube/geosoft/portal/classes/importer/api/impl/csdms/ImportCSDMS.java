@@ -20,7 +20,7 @@ import org.jsoup.select.Elements;
 
 public class ImportCSDMS implements ImportAPI {
 
-  private String url_prefix = "http://csdms.colorado.edu/wiki/Special:Browse/Model:";
+  private String url_prefix = "http://csdms.colorado.edu/wiki/Special:Browse?article=Model:";
   
   private HashMap<String, String> propertyMap = new HashMap<String, String>();
   private HashMap<String, SWProperty> softwareProps = new HashMap<String, SWProperty>();

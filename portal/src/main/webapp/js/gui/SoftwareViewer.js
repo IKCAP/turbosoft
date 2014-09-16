@@ -207,7 +207,7 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
 SoftwareViewer.prototype.getSoftwareListTree = function(enableDrag) {
     var tmp = this.getSoftwareTree(this.store.softwares);
     return this.getSoftwareTreePanel(tmp, 'Softwares', 
-    		'icon-component fa-title fa-orange', enableDrag);
+    		'icon-component fa-title fa-browngrey', enableDrag);
 };
 
 SoftwareViewer.prototype.addSoftware = function() {
@@ -250,7 +250,7 @@ SoftwareViewer.prototype.addSoftware = function() {
                     		id: softwareid,
                     		text: getLocalName(softwareid),
                     		leaf: true,
-                    		iconCls: 'icon-component fa fa-orange'
+                    		iconCls: 'icon-component fa-tree fa-orange'
                     	});
                     	pNode.expand();
                         This.treePanel.getStore().sort('text', 'ASC');
@@ -345,6 +345,7 @@ SoftwareViewer.prototype.confirmAndDelete = function(node) {
                     Ext.get(This.treePanel.getId()).unmask();
                     if (response.responseText == "OK") {
                         node.parentNode.removeChild(node);
+                        //FIXME: Remove the tab with the same title
                         This.tabPanel.remove(This.tabPanel.getActiveTab());
                     } else {
                         _console(response.responseText);
@@ -453,7 +454,7 @@ SoftwareViewer.prototype.importSoftware = function(repo_id) {
                     		id: softwareid,
                     		text: getLocalName(softwareid),
                     		leaf: true,
-                    		iconCls: 'icon-component fa fa-orange'
+                    		iconCls: 'icon-component fa-tree fa-orange'
                     	});
                         This.treePanel.getStore().sort('text', 'ASC');
                     } else {
@@ -3096,21 +3097,14 @@ SoftwareViewer.prototype.initialize = function() {
             autoLoad: {
                 url: this.op_url + '/intro'
             }
-        },{
-            xtype : 'component',
-            title: 'Solr Search',
-            autoEl : {
-                tag : 'iframe',
-                src : this.op_url + '/../jsp/search.jsp'
-            },
-            border: false
         }]
     });
 
     this.treePanel = this.getSoftwareListTree();
     Ext.apply(this.treePanel, {
-        title: 'Software'
+        title: 'Browse'
     });
+    this.initSoftwareTreePanelEvents();
     
     var This = this;
     var leftPanel = new Ext.TabPanel({
@@ -3120,13 +3114,21 @@ SoftwareViewer.prototype.initialize = function() {
         plain: true,
         margins: '5 0 5 5',
         activeTab: 0,
+        items: [
+        This.treePanel, 
+        {
+            xtype : 'component',
+            title: 'Search',
+            iconCls: 'icon-zoomOut fa-title fa-browngrey',
+            autoEl : {
+                tag : 'iframe',
+                src : this.op_url + '/../jsp/search.jsp'
+            },
+            border: false
+        }]
     });
 
     //this.store.types.sort();
-    this.initSoftwareTreePanelEvents();
-
-    leftPanel.add(this.treePanel);
-    leftPanel.setActiveTab(0);
 
     this.mainPanel = new Ext.Viewport({
         layout: {
