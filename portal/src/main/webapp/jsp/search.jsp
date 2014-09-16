@@ -1,6 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-    
+<%@page import="java.io.PrintWriter"
+%><%@page import="org.earthcube.geosoft.portal.classes.html.CSSLoader"
+%><%@page import="org.earthcube.geosoft.portal.classes.Config"
+%><%@page import="org.earthcube.geosoft.portal.classes.html.JSLoader"
+%><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Search Turbosoft</title>
+<%
+	Config configx = new Config(request);
+	String solrUrl = configx.getMiscPropertyValue("solrUrl");
+%>    
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -294,7 +306,7 @@
 		}
 		function submit_query(queryparams) {
 			$.ajax({
-				"url": "http://seagull.isi.edu:8983/solr/turbosoft/select?"+queryparams,
+				"url": "<%=solrUrl%>/turbosoft/select?"+queryparams,
 				"success": function( result ) {
 					var docs = result.response.docs;
 					$( "#resultshead" ).text("Results (" + docs.length + ")");
@@ -401,7 +413,7 @@
 		</ul>
 
 		<div id="basicsearch">
-		<form id="basicform" action="http://seagull.isi.edu:8983/solr/turbosoft/select" method="get">
+		<form id="basicform" action="<%=solrUrl%>/turbosoft/select" method="get">
 			<input id="basicq" name="q" type="text" class="hidden" value="" />
 			<input id="basicwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="basicindent" name="indent" type="text" class="hidden" value="true" />
@@ -418,7 +430,7 @@
 		</div>
 
 		<div id="advancedsearch">
-		<form id="advancedform" action="http://seagull.isi.edu:8983/solr/turbosoft/select" method="get">
+		<form id="advancedform" action="<%=solrUrl%>/turbosoft/select" method="get">
 			<input id="advq" name="q" type="text" class="hidden" value="" />
 			<input id="advwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="advindent" name="indent" type="text" class="hidden" value="true" />
@@ -507,7 +519,7 @@
 		</div>
 
 		<div id="rawquery" class="debug">
-		<form id="rawform" action="http://seagull.isi.edu:8983/solr/turbosoft/select" method="get">
+		<form id="rawform" action="<%=solrUrl%>/turbosoft/select" method="get">
 			<textarea id="rawq" name="q" style="width:100%; height:75px; resize:vertical;"></textarea>
 			<input id="rawwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="rawindent" name="indent" type="text" class="hidden" value="true" />
