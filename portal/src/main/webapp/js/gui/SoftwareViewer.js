@@ -831,7 +831,7 @@ SoftwareViewer.prototype.createSoftwareFromForm = function (form, softwareid, cl
 	            snlabel += This.getLabel(rec.data.quantityId);
 	            
 	            rec.data.label = snlabel;
-	            rec.data.id = snGrid.repons + camelCase(snlabel);
+	            rec.data.id = snGrid.repons + snlabel;
 	        	software.standardnames.push(This.prepareRoleRecord(rec.data));
 	        }
 	    });
@@ -2258,7 +2258,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
             			if(asid.indexOf("http://") != 0) {
             				// If this is a new assumption
 	    	        		var aslabel = e.value.replace(/\s/g,'_');
-	    	        		asid = e.grid.repons + camelCase(aslabel);
+	    	        		asid = e.grid.repons + aslabel;
 	    	        		var assumption = {id: asid, label: aslabel, categoryId: catid, added:true};
 	    	        		if(This.idmap[asid]) {
 	    	        			e.value = "";
@@ -2703,7 +2703,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
             			if(objid.indexOf("http://") != 0) {
             				// If this is a new object
 	    	        		var objlabel = objid.replace(/\s/g,'_');
-	    	        		var objid = e.grid.repons + camelCase(objlabel);
+	    	        		var objid = e.grid.repons + objlabel;
 	    	        		var obj = {id: objid, label: objlabel, added: true};
 	    	        		
 	    	        		This.idmap[objid] = obj;
@@ -2726,7 +2726,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
             			if(qid.indexOf("http://") != 0) {
             				// If this is a new quantity
 	    	        		var qlabel = qid.replace(/\s/g,'_');;
-	    	        		var qid = e.grid.repons + camelCase(qlabel);
+	    	        		var qid = e.grid.repons + qlabel;
 	    	        		var q = {id: qid, label: qlabel, added: true};
 	    	        		
 	    	        		This.idmap[qid] = q;
@@ -2750,7 +2750,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
 	            			if(opid.indexOf("http://") != 0) {
 	            				// If this is a new operator
 		    	        		var oplabel = opid.replace(/\s/g,'_');;
-		    	        		var opid = e.grid.repons + camelCase(oplabel);
+		    	        		var opid = e.grid.repons + oplabel;
 		    	        		var op = {id: opid, label: oplabel, added: true};
 		    	        		
 		    	        		This.idmap[opid] = op;

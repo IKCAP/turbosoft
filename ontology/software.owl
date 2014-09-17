@@ -1270,7 +1270,7 @@
     <!-- http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RelatedSoftware -->
 
     <owl:DatatypeProperty rdf:about="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RelatedSoftware">
-        <rdfs:label>Describe Related Software</rdfs:label>
+        <rdfs:label>Describe other software used together with this</rdfs:label>
         <rdfs:subPropertyOf rdf:resource="http://www.isi.edu/ikcap/geosoft/ontology/software.owl#RelatedSoftwareProperty"/>
     </owl:DatatypeProperty>
     
