@@ -1514,7 +1514,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 							header: extraprop.label ? 
 									extraprop.label : getLocalName(extraprop.id),
 							menuDisabled: true,
-							flex: 1,
+							//flex: 1,
 							editor: true
 						});
 						fields.push(getLocalName(extraprop.id));
