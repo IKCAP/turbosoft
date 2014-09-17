@@ -46,21 +46,6 @@ function SoftwareViewer(guid, store, op_url, upload_url, ontns, liburl, advanced
     	this.idmap[store.sninfo.assumptions[i].id] = store.sninfo.assumptions[i];
     for(var i=0; i<store.sninfo.standardnames.length; i++)
     	this.idmap[store.sninfo.standardnames[i].id] = store.sninfo.standardnames[i];
-    
-    // Create label to item mappings for all standard-name items
-    this.labelmap = {};
-    for(var i=0; i<store.sninfo.categories.length; i++)
-    	this.labelmap[store.sninfo.categories[i].label] = store.sninfo.categories[i];
-    for(var i=0; i<store.sninfo.objects.length; i++)
-    	this.labelmap[store.sninfo.objects[i].label] = store.sninfo.objects[i];
-    for(var i=0; i<store.sninfo.quantities.length; i++)
-    	this.labelmap[store.sninfo.quantities[i].label] = store.sninfo.quantities[i];
-    for(var i=0; i<store.sninfo.operators.length; i++)
-    	this.labelmap[store.sninfo.operators[i].label] = store.sninfo.operators[i];
-    for(var i=0; i<store.sninfo.assumptions.length; i++)
-    	this.labelmap[store.sninfo.assumptions[i].label] = store.sninfo.assumptions[i];
-    for(var i=0; i<store.sninfo.standardnames.length; i++)
-    	this.labelmap[store.sninfo.standardnames[i].label] = store.sninfo.standardnames[i];
 };
 
 SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, enableDrag) {
@@ -2370,6 +2355,7 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 	var store = grid.getStore();
 	var lines = csv.split("\n");
 	var not_imported = [];
+	var ns = grid.repons;
 	for(var i=0; i<lines.length; i++) {
 		if(!lines[i]) continue;
 		var vals = lines[i].split(",");
@@ -2400,7 +2386,7 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 		}
 		label += qtylabel;
 		
-		var sname = This.labelmap[label];
+		var sname = This.idmap[ns + label];
 		if(sname) {
 			sname.internalVariable = internalvar;
 			sname.note = '';
@@ -2411,13 +2397,13 @@ SoftwareViewer.prototype.importStandardNamesFromCSV = function(csv, grid) {
 		}
 		else {
 			not_imported[label] = "name "+label;
-			if(!This.labelmap[objlabel]) 
+			if(!This.idmap[ns + "object_" + objlabel]) 
 				not_imported[label] = "object " + objlabel;
-			else if(!This.labelmap[qtylabel])
+			else if(!This.idmap[ns + "quantity_" + qtylabel])
 				not_imported[label] = "quantity " +qtylabel;
 			else {
 				for(var j=0; j<oplabels.length; j++)
-					if(!This.labelmap[oplabels[j]])
+					if(!This.idmap[ns + "operator_" + oplabels[j]])
 						not_imported[label] = "operator " + oplabels[j];
 			}
 		}
