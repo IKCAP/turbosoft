@@ -16,7 +16,6 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-
 	<style>
 		.ui-tabs-anchor, 
 		input.ui-button
@@ -30,9 +29,8 @@
 		form {
 			margin-bottom: 0.5em;
 		}
-		.ui-accordion .ui-accordion-header {
-			padding-top: .1em;
-			padding-bottom: .1em;
+		#search {
+			margin: 2px;
 		}
 	</style>
 	<script>
@@ -91,32 +89,26 @@
 			$( "<span class=\"advoutput_line\"><input class=\"advoutput emptyprompt\" type=\"text\" value=\"mimetype\" /> <a href=\"#\">&#x2715;</a></span>" ).insertBefore( "#exp_add_output" );
 		});
 		$( "#exp_add_standardname" ).click(function() {
-			$( "<span class=\"advstandardname_line\"><input class=\"advstandardname_obj emptyprompt\" type=\"text\" value=\"object\" /> <input class=\"advstandardname_qty emptyprompt\" type=\"text\" value=\"quantity\" /> <a href=\"#\">&#x2715;</a></span>" ).insertBefore( "#exp_add_standardname" );
+			$( "<span class=\"advstandardname_line\"><input class=\"advstandardname emptyprompt\" type=\"text\" value=\"standard name\" /> <a href=\"#\">&#x2715;</a></span>" ).insertBefore( "#exp_add_standardname" );
 		});
-		$(document).on("focus", ".advinput, .advoutput, .advstandardname_obj, .advstandardname_qty", function(event) {
+		$(document).on("focus", ".advinput, .advoutput, .advstandardname", function(event) {
 			if ($(event.target).hasClass( "emptyprompt" )) {
 				$(event.target).val("");
 				$(event.target).removeClass( "emptyprompt" );
 			}
 		});
-        $(document).on("blur", ".advinput, .advoutput", function(event) {
-            if ($(event.target).val().trim().length == 0) {
-                $(event.target).val("mimetype");
-                $(event.target).addClass( "emptyprompt" );
-            }
-        });
-        $(document).on("blur", ".advstandardname_obj", function(event) {
-            if ($(event.target).val().trim().length == 0) {
-                $(event.target).val("object");
-                $(event.target).addClass( "emptyprompt" );
-            }
-        });
-        $(document).on("blur", ".advstandardname_qty", function(event) {
-            if ($(event.target).val().trim().length == 0) {
-                $(event.target).val("quantity");
-                $(event.target).addClass( "emptyprompt" );
-            }
-        });
+		$(document).on("blur", ".advinput, .advoutput", function(event) {
+			if ($(event.target).val().trim().length == 0) {
+				$(event.target).val("mimetype");
+				$(event.target).addClass( "emptyprompt" );
+			}
+		});
+		$(document).on("blur", ".advstandardname", function(event) {
+			if ($(event.target).val().trim().length == 0) {
+				$(event.target).val("standard name");
+				$(event.target).addClass( "emptyprompt" );
+			}
+		});
 		$(document).on("click", ".advinput_line a", function( event ) {
 			event.target.parentNode.remove();
 			update_advinput(null);
@@ -131,13 +123,13 @@
 		});
 		$( "#advreset" ).click(function() {
 			$( ".advinput_line" ).each(function(index, element) {
-				$(element).remove();
+				$(element).remove()
 			});
 			$( ".advoutput_line" ).each(function(index, element) {
-				$(element).remove();
+				$(element).remove()
 			});
 			$( ".advstandardname_line" ).each(function(index, element) {
-				$(element).remove();
+				$(element).remove()
 			});
 			update_advinput(null);
 			update_advoutput(null);
@@ -148,7 +140,7 @@
 		// Advanced Search Query Builder
 		function update_advq() {
 			var fields = [
-				$( "#advcomponenttype_q" ).val(),
+				$( "#advsoftwaretype_q" ).val(),
 				$( "#advdescription_q" ).val(),
 				$( "#advinput_q" ).val(),
 				$( "#advoutput_q" ).val(),
@@ -165,10 +157,10 @@
 			$( "#advquery" ).val(q);
 			wiperesults();
 		}
-		$( "#advcomponenttype" ).change(function() {
-			var q = $( "#advcomponenttype" ).val();
-			if (q.length > 0) q = "componenttype:\"" + q + "\"";
-			$( "#advcomponenttype_q" ).val(q);
+		$( "#advsoftwaretype" ).change(function() {
+			var q = $( "#advsoftwaretype" ).val();
+			if (q.length > 0) q = "softwaretype:\"" + q + "\"";
+			$( "#advsoftwaretype_q" ).val(q);
 			update_advq();
 		});
 		$( "#advdescription" ).change(function() {
@@ -196,7 +188,7 @@
 			$( "#advinput_q" ).val(q); 
 			update_advq();
 		}
-		$(document).on("change", ".advinput", function(event) { update_advinput(event); });
+		$(document).on("change", ".advinput", function(event) { update_advinput(event) });
 		function update_advoutput(event) {
 			var q = "";
 			$( ".advoutput" ).each(function(index, element) {
@@ -207,23 +199,25 @@
 			$( "#advoutput_q" ).val(q); 
 			update_advq();
 		}
-		$(document).on("change", ".advoutput", function(event) { update_advoutput(event); });
+		$(document).on("change", ".advoutput", function(event) { update_advoutput(event) });
 		function update_advstandardname(event) {
 			var q = "";
 			$( ".advstandardname_line" ).each(function(index, element) {
-				var qq_obj = $(element).children( ".advstandardname_obj" ).val().trim();
-				var qq_qty = $(element).children( ".advstandardname_qty" ).val().trim();
-				var b_obj = (qq_obj.length > 0) && ("object" != qq_obj);
-				var b_qty = (qq_qty.length > 0) && ("quantity" != qq_qty);
-				if ( b_obj && b_qty) q += " AND standardnames:\"" + qq_obj + " " + qq_qty + "\"";
-				else if (b_obj) q += " AND standardnames:\"" + qq_obj + "\"";
-				else if (b_qty) q += " AND standardnames:\"" + qq_qty + "\"";
+				var qq = $(element).children( ".advstandardname" ).val().trim();
+				if ((qq.length > 0) && ("standard name" != qq)) q += " AND standardnames:" + qq;
+				//var qq_obj = $(element).children( ".advstandardname_obj" ).val().trim();
+				//var qq_qty = $(element).children( ".advstandardname_qty" ).val().trim();
+				//var b_obj = (qq_obj.length > 0) && ("object" != qq_obj);
+				//var b_qty = (qq_qty.length > 0) && ("quantity" != qq_qty);
+				//if ( b_obj && b_qty) q += " AND standardnames:\"" + qq_obj + " " + qq_qty + "\"";
+				//else if (b_obj) q += " AND standardnames:\"" + qq_obj + "\"";
+				//else if (b_qty) q += " AND standardnames:\"" + qq_qty + "\"";
 			});
 			if (q.length > 0) q = q.substring(5);
 			$( "#advstandardname_q" ).val(q); 
 			update_advq();
 		}
-		$(document).on("change", ".advstandardname_obj, .advstandardname_qty", function(event) { update_advstandardname(event); });
+		$(document).on("change", ".advstandardname", function(event) { update_advstandardname(event) });
 		$( "#advdependencies" ).change(function() {
 			var terms = $( "#advdependencies" ).val().match(/("[^"]*?")|(\b\S+?\b)/g);
 			if (null == terms) {
@@ -293,17 +287,6 @@
 				return entityMap[s];
 			});
 		}
-		function openSoftwareTab(sname) {
-			var viewer = parent.compViewer_1;
-			var softwareid = viewer.ns['lib']+sname;
-			var tnode = viewer.treePanel.getStore().getNodeById(softwareid);
-			if(tnode) {
-				viewer.treePanel.fireEvent("itemclick", viewer.treePanel, tnode);
-			}
-			else {
-				alert('Cannot find software '+sname);
-			}
-		}
 		function submit_query(queryparams) {
 			$.ajax({
 				"url": "<%=solrUrl%>/turbosoft/select?"+queryparams,
@@ -313,10 +296,16 @@
 					$( "#resultsquery" ).text(result.responseHeader.params.q);
 					var doclisting = [];
 					for (i=0; i < docs.length; i++) {
-						var docelemstr = "<li class=\"result_item\">";
+						var docelemstr = "<li class=\"result_item\">"
 						docelemstr += "<h4><a href=\"" + docs[i].uri + "\" target=\"_blank\">" + docs[i].id + "</a></h4>";
 						docelemstr += "<span class=\"result_uri\">" + docs[i].uri + "</span><br/>";
-						docelemstr += "<span class=\"result_type\">(Type: " + docs[i].componenttype + ")</span><br/>";
+						if ("softwaretype" in docs[i]) {
+							docelemstr += "<span class=\"result_type\">(Type: " + docs[i].softwaretype[docs[i].softwaretype.length-1];
+							for (j=docs[i].softwaretype.length-2; j>=0; j--) {
+								docelemstr += " / " + docs[i].softwaretype[j];
+							}
+							docelemstr += ")</span><br/>";
+						}
 						if ("description" in docs[i]) docelemstr += "<p><b>Description</b></br>" + escapeHtml(docs[i].description) + "</p>";
 						if ("io_input" in docs[i]) {
 							docelemstr += "<p><b>Inputs</b></br>";
@@ -346,11 +335,6 @@
 						doclisting.push( docelemstr );
 					}
 					$( "#resultlist" ).append( doclisting );
-					$( "#resultlist a" ).bind("click", function() {
-						var surl = $(this).attr('href');
-						openSoftwareTab(surl.replace(/.+#/,''));
-						return false;
-					});
 					$( "#results" ).accordion("option", "active", 0);
 				},
 				"dataType": "jsonp",
@@ -364,12 +348,15 @@
 
 	<style>
 		body {
-			margin:0; padding:0; text-align: center; height:100%; background-color:#ccc;
+			margin:0; padding:0; text-align: center; height:100%; background-color:#eee;
 			font-family: National, "Helvetica Neue", Helvetica, Arial, Helmet, Freesans, "DejaVu Sans", Calibri, sans-serif;
-			}
+		}
 
-		#pagecenter {margin:auto; padding:10px; text-align: left; min-height: 100%; background-color:#eee;}
-		*html #pagecenter {height:100%}
+		#pagecenter {
+		/*width:770px; margin:auto; padding:10px;*/ 
+		text-align: left; min-height: 100%; /*background-color:#eee;*/
+		}
+		#pagecenter {height:100%}
 
 		#top {margin:-10px -10px 10px -10px; padding:10px 20px 5px 20px; background:linear-gradient(rgb(108,17,28), rgb(51, 51, 51));}
 		h1 {display:inline; margin-left:10px;color:rgb(204, 29, 51); font-size:150%; }
@@ -387,7 +374,8 @@
 		.expander a {font-size:75%;}
 		.expander .exp_add {display:block;}
 
-		#results h3 {font-size:150%;font-weight:bold;}
+		#results h3 {font-size:100%;font-weight:bold;}
+		#results { padding: 2px; }
 		ul#resultlist {padding:0;}
 		li.result_item {display:block; margin:0 0 25px 0;}
 		li.result_item h4 {margin:0; font-size:133%;}
@@ -401,8 +389,6 @@
 
 </head>
 <body><div id="pagecenter">
-
-	<!-- div id="top"><img src="http://seagull.isi.edu:8080/turbosoft-portal/images/logo.png" /><h1>Turbosoft :: Component Search</h1></div--> 
 
 	<div id="search">
 
@@ -418,13 +404,13 @@
 			<input id="basicwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="basicindent" name="indent" type="text" class="hidden" value="true" />
 
-			<input id="basictext" type="text" style="width:100%;" />
-			<input id="basicsubmit" type="submit" style="width:50%;" />
+			<input id="basictext" type="text" style="width:95%;" />
+			<input id="basicsubmit" type="submit" style="width:50%" />
 
 			<div class="debug">
 				<hr/>
 				Query Preview:<br/>
-				<textarea readonly id="basicquery" style="width:100%; height:75px; resize:vertical;"></textarea>
+				<textarea readonly id="basicquery" style="width:95%; height:75px; resize:vertical;"></textarea>
 			</div>
 		</form>
 		</div>
@@ -435,19 +421,24 @@
 			<input id="advwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="advindent" name="indent" type="text" class="hidden" value="true" />
 
-			<div class="advfield">Component Type:<br/>
-			<input id="advcomponenttype_q" type="text" class="hidden" value="" />
-			<select id="advcomponenttype">
+			<div class="advfield">Software Type:<br/>
+			<input id="advsoftwaretype_q" type="text" class="hidden" value="" />
+			<select id="advsoftwaretype">
 			<option value="" selected>Any</option>
-			<option value="sw:ModelComponent">Model Component</option>
-			<option value="sw:DataProcessingComponent">Data Processing Component</option>
-			<option value="sw:VisualizationComponent">Visualization Component</option>
+			<option value="sw:App">&nbsp; - App</option>
+			<option value="sw:SoftwareComponent">&nbsp; - Software Component</option>
+			<option value="sw:ModelComponent">&nbsp; &nbsp; -- Model Component</option>
+			<option value="sw:DataProcessingComponent">&nbsp; &nbsp; -- Data Processing Component</option>
+			<option value="sw:VisualizationComponent">&nbsp; &nbsp; -- Visualization Component</option>
+			<option value="sw:SoftwarePackage">&nbsp; - Software Package</option>
+			<option value="sw:ModelPackage">&nbsp; &nbsp; -- Model Package</option>
+			<option value="sw:VisualizationPackage">&nbsp; &nbsp; -- Visualization Package</option>
 			</select>
 			</div>
 
 			<div class="advfield">Description:<br/>
 			<input id="advdescription_q" type="text" class="hidden" value="" />
-			<input id="advdescription" type="text" style="width:100%;" />
+			<input id="advdescription" type="text" style="width:95%;" />
 			</div>
 
 			<div class="advfield">Inputs:<br/>
@@ -473,7 +464,7 @@
 
 			<div class="advfield">Dependencies:<br/>
 			<input id="advdependencies_q" type="text" class="hidden" value="" />
-			<input id="advdependencies" type="text" style="width:100%;" />
+			<input id="advdependencies" type="text" style="width:95%;" />
 			</div>
 
 			<div class="advfield">Programming Language:<br/>
@@ -512,7 +503,7 @@
 		<div class="debug">
 			<hr/>
 			Query Preview:<br/>
-			<textarea readonly id="advquery" style="width:100%; height:75px; resize:vertical;"></textarea>
+			<textarea readonly id="advquery" style="width:95%; height:75px; resize:vertical;"></textarea>
 		</div>
 
 		</form>
@@ -520,7 +511,7 @@
 
 		<div id="rawquery" class="debug">
 		<form id="rawform" action="<%=solrUrl%>/turbosoft/select" method="get">
-			<textarea id="rawq" name="q" style="width:100%; height:75px; resize:vertical;"></textarea>
+			<textarea id="rawq" name="q" style="width:95%; height:75px; resize:vertical;"></textarea>
 			<input id="rawwt" name="wt" type="text" class="hidden" value="json" />
 			<input id="rawindent" name="indent" type="text" class="hidden" value="true" />
 			<input id="rawsubmit" type="submit" style="width:19%" />
@@ -528,8 +519,6 @@
 		</div>
 
 	</div>
-
-	<p/>
 
 	<div id="results">
 		<h3><span id="resultshead">Results</span></h3>

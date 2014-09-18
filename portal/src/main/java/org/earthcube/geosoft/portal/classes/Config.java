@@ -105,8 +105,8 @@ public class Config {
     }
     
     this.miscProperties = new HashMap<String, String>();
-    if(serverConfig.containsKey("misc")) {
-    SubnodeConfiguration misc = serverConfig.configurationAt("misc");
+    try {
+      SubnodeConfiguration misc = serverConfig.configurationAt("misc");
       for(@SuppressWarnings("unchecked")
       Iterator<String> it = misc.getKeys(); it.hasNext(); ) {
         String key = it.next();
@@ -114,6 +114,7 @@ public class Config {
         this.miscProperties.put(key,  value);
       }
     }
+    catch (Exception e) { }
   }
 
   private PropertyListConfiguration getPortalConfiguration(
