@@ -163,48 +163,28 @@ public class SoftwareKB implements SoftwareAPI {
     }
     return addedTriples;
   }
-
-  /*private void initDomainKnowledge() {
-    // Create general domain knowledge data for use in rules
-    domainKnowledge = new ArrayList<KBTriple>();
-    KBObject rdfsSubProp = this.kb.getProperty(KBUtils.RDFS + "subPropertyOf");
-    KBObject topObjProp = this.kb.getProperty(KBUtils.OWL + "topObjectProperty");
-    KBObject topDataProp = this.kb.getProperty(KBUtils.OWL + "topDataProperty");
-    domainKnowledge.addAll(kb.genericTripleQuery(null, rdfsSubProp, topObjProp));
-    domainKnowledge.addAll(kb.genericTripleQuery(null, rdfsSubProp, topDataProp));
-  }*/
-
-  /**
-   * Set Rule Prefix-Namespace Mappings Prefixes allowed in Rules: rdf, rdfs,
-   * owl, xsd -- usual dc, dcdom -- data catalog pc, pcdom -- software
-   * catalog ac, acdom -- synonyms for pc, pcdom
-   */
-  /*private void setRuleMappings(KBAPI kb) {
-    rulePrefixes = new HashMap<String, String>();
-    rulePrefixes.put("rdf", KBUtils.RDF);
-    rulePrefixes.put("rdfs", KBUtils.RDFS);
-    rulePrefixes.put("owl", KBUtils.OWL);
-    rulePrefixes.put("xsd", KBUtils.XSD);
-    rulePrefixes.put("ont", this.ontns);
-    kb.setRulePrefixes(rulePrefixes);
-  }*/
   
   @Override
   public SoftwareType getSoftwareTypesTree() {
-    //ArrayList<KBTriple> entailments = this.createEntailments(this.kb);
-    SoftwareType rootType = this.getSoftwareType(this.ontns + "Software", true);
-    //this.removeEntailments(this.kb, entailments);
+    SoftwareType rootType = this.getSoftwareType(this.ontns + "Software", true, false);
     return rootType;
   }
   
   @Override
   public SoftwareType getSoftwareType(String id, boolean getSubtypes) {
+    return this.getSoftwareType(id, getSubtypes, true);
+  }
+  
+  private SoftwareType getSoftwareType(String id, boolean getSubtypes, 
+      boolean details) {
     SoftwareType type = new SoftwareType(id);
     KBObject cls = conceptMap.get(id);
-    type.setAnnotation(this.kb.getComment(cls));
+    if(details) {
+      type.setAnnotation(this.kb.getComment(cls));
+    }
     if(getSubtypes) {
       for(KBObject obj : this.kb.getSubClasses(cls, true)) {
-        type.addSubtype(this.getSoftwareType(obj.getID(), getSubtypes));
+        type.addSubtype(this.getSoftwareType(obj.getID(), getSubtypes, details));
       }
     }
     return type;
