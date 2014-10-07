@@ -335,6 +335,16 @@
 						doclisting.push( docelemstr );
 					}
 					$( "#resultlist" ).append( doclisting );
+					$( "#resultlist a" ).bind("click", function() {
+						var surl = $(this).attr('href');
+						if(parent.compViewer_1) {
+							var tree = parent.compViewer_1.treePanel;
+							var sid = parent.compViewer_1.ns['lib'] + parent.getLocalName(surl);
+							var rec = tree.getStore().getNodeById(sid);
+							tree.fireEvent('itemclick', tree, rec);
+							return false;
+						}
+					});
 					$( "#results" ).accordion("option", "active", 0);
 				},
 				"dataType": "jsonp",
