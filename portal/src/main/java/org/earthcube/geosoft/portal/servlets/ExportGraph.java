@@ -13,7 +13,6 @@ import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
 
 import org.earthcube.geosoft.portal.classes.Config;
-import org.earthcube.geosoft.portal.classes.WriteLock;
 
 /**
  * Servlet exports graph in TDB
@@ -37,19 +36,17 @@ public class ExportGraph extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
 		
-		synchronized (WriteLock.Lock) {
-  		String uri = config.getServerUrl() + request.getRequestURI();
-  		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
-  		try {
-  			KBAPI kb = tdbfac.getKB(uri, OntSpec.PLAIN);
-  			if(kb.getAllTriples().size() > 0) {
-  				response.setContentType("text/plain");
-  				out.println(kb.toAbbrevRdf(true));
-  			}
-  		}
-  		catch (Exception e) {
-  			e.printStackTrace();
-  		}
+		String uri = config.getServerUrl() + request.getRequestURI();
+		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
+		try {
+		  KBAPI kb = tdbfac.getKB(uri, OntSpec.PLAIN);
+		  if(kb.getAllTriples().size() > 0) {
+		    response.setContentType("text/plain");
+		    out.println(kb.toAbbrevRdf(true));
+		  }
+		}
+		catch (Exception e) {
+		  e.printStackTrace();
 		}
 	}
 

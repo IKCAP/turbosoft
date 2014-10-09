@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.earthcube.geosoft.portal.classes.Config;
-import org.earthcube.geosoft.portal.classes.WriteLock;
 import org.earthcube.geosoft.portal.controllers.SoftwareController;
 
 /**
@@ -55,97 +54,95 @@ public class DescribeSoftware extends HttpServlet {
 		}
 
 		int guid = 1;
-		
-		synchronized(WriteLock.Lock) {
-		  SoftwareController mc = new SoftwareController(guid, config);
-  		String softwareid = request.getParameter("softwareid");
-  		
-  		PrintWriter out = response.getWriter();
-  		if (op == null || op.equals("")) {
-  			response.setContentType("text/html");
-  			mc.show(out);
-  			return;
-  		} else if (op.equals("getSoftwareJSON")) {
-  			out.print(mc.getSoftwareJSON(softwareid));
-  		} else if (op.equals("getSoftwareTypeJSON")) {
-  		  String typeid = request.getParameter("typeid");
-        out.print(mc.getSoftwareTypeJSON(typeid));
-      }
-		
-			if (op.equals("saveSoftwareJSON")) {
-				String software_json = request.getParameter("software_json");
-				if (!config.isSandboxed())
-					if (mc.saveSoftwareJSON(softwareid, software_json))
-						out.print("OK");
-			} else if (op.equals("saveSoftwareTypeJSON")) {
-			  String typeid = request.getParameter("typeid");
-        String type_json = request.getParameter("json");
-        if (!config.isSandboxed())
-          if (mc.saveSoftwareTypeJSON(typeid, type_json))
-            out.print("OK");
-			} else if (op.equals("getInferredSoftware")) {
-        String software_json = request.getParameter("software_json");
-        if (!config.isSandboxed())
-          out.print(mc.getInferredSoftware(softwareid, software_json));
-      } else if (op.equals("checkCode")){
-        String id = request.getParameter("softwareid");
-        if (!config.isSandboxed()) {
-          out.print(mc.checkCode(id));
-        }
-      } else if (op.equals("runAuditTool")) {
-        if (!config.isSandboxed())
-          if(mc.runAuditTool(softwareid))
-            out.print("OK");
-      } else if (op.equals("addSoftware")) {
-        String software_typeid = request.getParameter("software_typeid");
-				if (!config.isSandboxed())
-					if (mc.addSoftware(softwareid, software_typeid))
-						out.print("OK");
-      } else if (op.equals("addSoftwareType")) {
-        String typeid = request.getParameter("typeid");
-        String parentid = request.getParameter("parentid");
-        if (!config.isSandboxed())
-          if (mc.addSoftwareType(typeid, parentid))
-            out.print("OK");
-			} else if (op.equals("importSoftware")) {
-			  String repo_softwareid = request.getParameter("repo_softwareid");
-			  String repo_id = request.getParameter("repo_id");
-			  String software_typeid = request.getParameter("software_typeid");
-			  if(mc.importSoftware(softwareid, software_typeid, repo_softwareid, repo_id))
-			    out.print("OK");
-			} else if (op.equals("delSoftware")) {
-				if (!config.isSandboxed())
-					if (mc.delSoftware(softwareid))
-						out.print("OK");
-			} else if (op.equals("delSoftwareType")) {
-        String typeid = request.getParameter("typeid");
-        if (!config.isSandboxed())
-          if (mc.delSoftwareType(typeid))
-            out.print("OK");
-			} else if (op.equals("renameSoftware")) {
-			  String newid = request.getParameter("newid");
-        if (!config.isSandboxed())
-          if(mc.renameSoftware(softwareid, newid))
-            out.print("OK");
-      } else if (op.equals("renameSoftwareType")) {
-        String typeid = request.getParameter("typeid");
-        String newid = request.getParameter("newid");
-        if (!config.isSandboxed())
-          if (mc.renameSoftwareType(typeid, newid))
-            out.print("OK");
-      } else if (op.equals("moveSoftware")) {
-			  softwareid = request.getParameter("id");
-			  String typeid = request.getParameter("parentid");
-        if (!config.isSandboxed())
-          if (mc.setSoftwareType(softwareid, typeid))
-            out.print("OK");
-      } else if (op.equals("moveSoftwareType")) {
-        String typeid = request.getParameter("id");
-        String parentid = request.getParameter("parentid");
-        if (!config.isSandboxed())
-          if (mc.setSoftwareTypeParent(typeid, parentid))
-            out.print("OK");
-      }
+
+		SoftwareController mc = new SoftwareController(guid, config);
+		String softwareid = request.getParameter("softwareid");
+
+		PrintWriter out = response.getWriter();
+		if (op == null || op.equals("")) {
+		  response.setContentType("text/html");
+		  mc.show(out);
+		  return;
+		} else if (op.equals("getSoftwareJSON")) {
+		  out.print(mc.getSoftwareJSON(softwareid));
+		} else if (op.equals("getSoftwareTypeJSON")) {
+		  String typeid = request.getParameter("typeid");
+		  out.print(mc.getSoftwareTypeJSON(typeid));
+		}
+
+		if (op.equals("saveSoftwareJSON")) {
+		  String software_json = request.getParameter("software_json");
+		  if (!config.isSandboxed())
+		    if (mc.saveSoftwareJSON(softwareid, software_json))
+		      out.print("OK");
+		} else if (op.equals("saveSoftwareTypeJSON")) {
+		  String typeid = request.getParameter("typeid");
+		  String type_json = request.getParameter("json");
+		  if (!config.isSandboxed())
+		    if (mc.saveSoftwareTypeJSON(typeid, type_json))
+		      out.print("OK");
+		} else if (op.equals("getInferredSoftware")) {
+		  String software_json = request.getParameter("software_json");
+		  if (!config.isSandboxed())
+		    out.print(mc.getInferredSoftware(softwareid, software_json));
+		} else if (op.equals("checkCode")){
+		  String id = request.getParameter("softwareid");
+		  if (!config.isSandboxed()) {
+		    out.print(mc.checkCode(id));
+		  }
+		} else if (op.equals("runAuditTool")) {
+		  if (!config.isSandboxed())
+		    if(mc.runAuditTool(softwareid))
+		      out.print("OK");
+		} else if (op.equals("addSoftware")) {
+		  String software_typeid = request.getParameter("software_typeid");
+		  if (!config.isSandboxed())
+		    if (mc.addSoftware(softwareid, software_typeid))
+		      out.print("OK");
+		} else if (op.equals("addSoftwareType")) {
+		  String typeid = request.getParameter("typeid");
+		  String parentid = request.getParameter("parentid");
+		  if (!config.isSandboxed())
+		    if (mc.addSoftwareType(typeid, parentid))
+		      out.print("OK");
+		} else if (op.equals("importSoftware")) {
+		  String repo_softwareid = request.getParameter("repo_softwareid");
+		  String repo_id = request.getParameter("repo_id");
+		  String software_typeid = request.getParameter("software_typeid");
+		  if(mc.importSoftware(softwareid, software_typeid, repo_softwareid, repo_id))
+		    out.print("OK");
+		} else if (op.equals("delSoftware")) {
+		  if (!config.isSandboxed())
+		    if (mc.delSoftware(softwareid))
+		      out.print("OK");
+		} else if (op.equals("delSoftwareType")) {
+		  String typeid = request.getParameter("typeid");
+		  if (!config.isSandboxed())
+		    if (mc.delSoftwareType(typeid))
+		      out.print("OK");
+		} else if (op.equals("renameSoftware")) {
+		  String newid = request.getParameter("newid");
+		  if (!config.isSandboxed())
+		    if(mc.renameSoftware(softwareid, newid))
+		      out.print("OK");
+		} else if (op.equals("renameSoftwareType")) {
+		  String typeid = request.getParameter("typeid");
+		  String newid = request.getParameter("newid");
+		  if (!config.isSandboxed())
+		    if (mc.renameSoftwareType(typeid, newid))
+		      out.print("OK");
+		} else if (op.equals("moveSoftware")) {
+		  softwareid = request.getParameter("id");
+		  String typeid = request.getParameter("parentid");
+		  if (!config.isSandboxed())
+		    if (mc.setSoftwareType(softwareid, typeid))
+		      out.print("OK");
+		} else if (op.equals("moveSoftwareType")) {
+		  String typeid = request.getParameter("id");
+		  String parentid = request.getParameter("parentid");
+		  if (!config.isSandboxed())
+		    if (mc.setSoftwareTypeParent(typeid, parentid))
+		      out.print("OK");
 		}
 	}
 

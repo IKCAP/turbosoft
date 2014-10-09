@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.earthcube.geosoft.portal.classes.Config;
-import org.earthcube.geosoft.portal.classes.WriteLock;
 import org.earthcube.geosoft.portal.controllers.CommunityController;
 
 /**
@@ -52,27 +51,25 @@ public class ManageCommunity extends HttpServlet {
       
       int guid = 1;
 
-      synchronized (WriteLock.Lock) {
-        CommunityController uc = new CommunityController(guid, config);
+      CommunityController uc = new CommunityController(guid, config);
 
-        String userid = request.getParameter("userid");
-  
-        PrintWriter out = response.getWriter();
-        // Reader functions
-        if (op == null || op.equals("")) {
-          response.setContentType("text/html");
-          uc.show(out);
-          return;
-        } else if (op.equals("getUserJSON")) {
-          out.println(uc.getUserJSON(userid));
-        }
-      
-        // Writer functions
-        if (op.equals("saveUserJSON")) {
-          String uservals_json = request.getParameter("json");
-          if (uc.saveUserJSON(userid, uservals_json))
-            out.print("OK");
-        }
+      String userid = request.getParameter("userid");
+
+      PrintWriter out = response.getWriter();
+      // Reader functions
+      if (op == null || op.equals("")) {
+        response.setContentType("text/html");
+        uc.show(out);
+        return;
+      } else if (op.equals("getUserJSON")) {
+        out.println(uc.getUserJSON(userid));
+      }
+
+      // Writer functions
+      if (op.equals("saveUserJSON")) {
+        String uservals_json = request.getParameter("json");
+        if (uc.saveUserJSON(userid, uservals_json))
+          out.print("OK");
       }
     }
 
