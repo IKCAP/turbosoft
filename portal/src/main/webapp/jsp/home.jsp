@@ -1,28 +1,51 @@
+<style>
+	ol li {
+		padding: 5px;
+	}
+	.home_footer {
+		border-top:1px solid #ccc;
+		padding-top:5px;
+		color: #999;
+		font-size:11px;
+		font-style: italic;
+	}
+</style>
 <body>
 	<h2 style="margin-top: 0px">Welcome to the Turbosoft Portal</h2>
 
-	<p>
-		This portal provides access to <a href="http://geosoft.earthcube.org">Geosoft's
-			Turbosoft system</a> by allowing you to browse, and add models to the
-		repository
-	</p>
+	<p>The TurboSoft portal will provide a community repository for geosciences software. 
+	Key features of TurboSoft are: </p>
+	<ol>
+	<li><b>Allowing contributors to specify structured metadata</b> about software, 
+	including input requirements, physical variables and assumptions, and software 
+	runtime dependencies.  TurboSoft uses this structured metadata to improve search, 
+	to facilitate software reuse, and to support software integration.</li>
+	<li><b>Assisting geoscientists to make their software more reusable</b>.  
+	TurboSoft includes mini-tutorials to introduce geoscientists 
+	to topics such as licenses, software libraries, and software reuse.</li>
+	<li><b>Maintaining compatibility with existing software catalogues</b>, such 
+	as software repositories (e.g., GitHub) and model frameworks (e.g., CSDMS, CIG). 
+	TurboSoft includes links to software repositories, and import/export capabilities 
+	for model frameworks.</li>
+	</ol>
 
-	<h2>About Geosoft</h2>
-	<p>Although scientists program a lot of code to analyze their data,
-		that important software is often not shared and rarely preserved. The
-		GeoSoft project brings together computer scientists, geoscientists,
-		and social scientists to assist scientists to describe basic
-		characteristics of their code and share it. GeoSoft will be a social
-		site where scientists can discover alternative approaches to release
-		free software, use intelligent interfaces to explain how their
-		software works, and form productive communities around software
-		projects. This research has the potential to fundamentally transform
-		geosciences by making scientific software readily available to
-		researchers and citizen scientists for efficient data analysis.</p>
+	<p>TurboSoft is still under development.  Please <a href="mailto:varunr@isi.edu">contact us</a> if you 
+	would like to contribute and be an early adopter.</p>
 
-	<p>
-		If you are interested in using the Turbosoft system with your own
-		framework, or in setting up your own installation of a Turbosoft
-		portal, please <a href="mailto:varunr@isi.edu">contact us</a>.
-	</p>
+	<p>TurboSoft is part of the NSF EarthCube GeoSoft project.</p>  
+
+	<p>If you are interested in using the Turbosoft system with your own framework, 
+	or in setting up your own installation of a Turbosoft portal, please 
+	<a href="mailto:varunr@isi.edu">contact us</a>.</p>
+	
+	<div class="home_footer">
+		<div style="float:left;padding-right:5px">
+			<img src="images/nsf-logo.gif" title="NSF" style="float:left" />
+			<img src="images/earthcube-logo.png" title="Earthcube" style="float:left" />
+		</div>	
+		<div style="height:36px;padding-top:8px">
+			The GeoSoft project is funded by the National Science Foundation under 
+			the EarthCube Initiative through grants ICER-1343800 and ICER-1440323
+		</div>
+	</div>
 </body>

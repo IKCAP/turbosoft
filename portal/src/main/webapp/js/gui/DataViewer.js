@@ -1,15 +1,15 @@
 function DataViewer(guid, store, 
 		op_url, upload_url, 
 		dcns, ontns, libns, 
-		advanced_user, has_external_catalog) {
+		editable, has_external_catalog) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.upload_url = upload_url;
-    this.advanced_user = advanced_user;
+    this.editable = editable;
     this.use_import_ui = false;
     if(this.use_import_ui)
-    	this.advanced_user = false;
+    	this.editable = false;
     this.has_external_catalog = has_external_catalog;
 
     this.dcns = dcns;
@@ -264,7 +264,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     // Create Save Button and it's handler
     var propmods = {addedProperties:{}, deletedProperties:{}, modifiedProperties:{} };
     var savebtn;
-    if (This.advanced_user) {
+    if (This.editable) {
         var savebtn = new Ext.Button({
             text: 'Save Changes',
             iconCls: 'icon-save fa fa-browngrey',
@@ -359,8 +359,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             }
     };
     
-    var tbar;
-    if(!This.use_import_ui) {
+    var tbar = null;
+    if(This.editable) {
         tbar = [uploadfilesbtn];
 		if (this.has_external_catalog)
 			tbar.push({
@@ -395,7 +395,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 		                    		This.guid+"_external", store, 
 		                    		This.op_url+'/external', This.upload_url, 
 		                    		This.dcns, This.ontns, This.libns, 
-		                    		This.advanced_user, true, false);
+		                    		This.editable, true, false);
 		                    extdv.mainPanel = win;
 		                    extdv.initialize();
 		                },
@@ -436,7 +436,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     var plugins = [];
     var sm = null;
     
-    if (This.advanced_user) {
+    if (This.editable) {
         var editorPlugin = Ext.create('Ext.grid.plugin.CellEditing', {
             clicksToEdit: 1
         });
@@ -503,14 +503,14 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             flex: 1,
             header: 'Property',
             editor: propEditor,
-            editable: This.advanced_user ? true: false,
+            editable: This.editable ? true: false,
             menuDisabled: true
         }, {
             dataIndex: 'range',
             flex: 1,
             header: 'Range',
             editor: rangeEditor,
-            editable: This.advanced_user ? true: false,
+            editable: This.editable ? true: false,
             menuDisabled: true
         }],
         selModel: sm,
@@ -810,11 +810,11 @@ DataViewer.prototype.openDataEditor = function(args) {
         nameColumnWidth: '50%',
         customEditors: customEditors,
         title: 'Metadata for ' + getLocalName(id),
-        listeners: { 'beforeedit': function (e) { return !This.use_import_ui; } },
-        tbar: This.use_import_ui ? null : [savebtn]
+        listeners: { 'beforeedit': function (e) { return This.editable; } },
+        tbar: !This.editable ? null : [savebtn]
     });
     
-    if(this.use_import_ui)
+    if(!this.editable)
     	gridPanel.getSelectionModel().setLocked(true);
     
     var dataStore = gridPanel.getStore();
@@ -895,8 +895,8 @@ DataViewer.prototype.openDataEditor = function(args) {
         }
     };
     
-    var tbar;
-    if(!This.use_import_ui) {
+    var tbar = null;
+    if(This.editable && !This.use_import_ui) {
 	    tbar = [ addfilebtn, 
 		{
 		    iconCls: 'icon-download fa fa-browngrey',
@@ -919,7 +919,7 @@ DataViewer.prototype.openDataEditor = function(args) {
 	        }
 	    }];
     }
-    else {
+    else if (this.use_import_ui){
     	tbar = [
     	{
     		iconCls: 'icon-download-cloud fa fa-browngrey',
@@ -1045,6 +1045,9 @@ DataViewer.prototype.createDataTreeToolbar = function() {
 
 DataViewer.prototype.onDataItemContextMenu = function(dataview, node, item, index, e, eOpts) {
     var This = this;
+    if(!this.editable)
+    	return;
+    
     e.stopEvent();
     if (!this.menu) {
         this.menu = Ext.create('Ext.menu.Menu', {
@@ -1088,7 +1091,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
         viewConfig: {
             plugins: {
                 ptype: 'treeviewdragdrop',
-                enableDrag: This.advanced_user ? true: false,
+                enableDrag: This.editable ? true: false,
                 ddGroup: This.guid + '_DataTree',
                 appendOnly: true,
                 dragText: 'Drag File Type to its new Parent'
@@ -1101,19 +1104,19 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
                 }
             }
         },
-        });
+    });
 
-    // Create toolbar for advanced users
-    if (this.advanced_user) {
+    // Create toolbar
+    if (this.editable) {
+    	console.log(this.editable);
         this.createDataTreeToolbar(this.dataTreePanel);
         this.dataTreePanel.doComponentLayout();
+        this.dataTreePanel.getStore().on('move', function(node, oldp, newp) {
+            This.moveDatatypeTo(node.data.id, oldp.data.id, newp.data.id);
+        });
     }
 
     this.dataTreePanel.on("itemclick", Ext.Function.bind(this.handleTreeClick, this));
-
-    this.dataTreePanel.getStore().on('move', function(node, oldp, newp) {
-        This.moveDatatypeTo(node.data.id, oldp.data.id, newp.data.id);
-    });
 };
 
 DataViewer.prototype.handleTreeClick = function(view, rec, item, ind, event) {
@@ -1214,7 +1217,7 @@ DataViewer.prototype.createMetricsTreePanel = function(metricsHierarchy) {
         url: this.op_url
     });
     // Create toolbar for advanced users
-    if (this.advanced_user) {
+    if (this.editable) {
         this.createMetricsTreeToolbar();
     }
 };

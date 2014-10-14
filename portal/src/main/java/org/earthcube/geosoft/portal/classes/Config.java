@@ -66,6 +66,9 @@ public class Config {
     if (this.userId == null)
       return;
 
+    if(this.userId.equals("guest"))
+      this.isSandboxed = true;
+    
     this.sessionId = request.getSession().getId();
     this.userUrl = serverUrl + contextRootPath + exportServletPath; 
     //+ "/" + usersRelativeDir + "/" + userId;

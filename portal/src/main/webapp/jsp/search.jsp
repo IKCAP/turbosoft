@@ -32,6 +32,9 @@
 		#search {
 			margin: 2px;
 		}
+		a.ui-tabs-anchor:focus {
+			outline: 0;
+		}
 	</style>
 	<script>
 	$(function() {
@@ -341,7 +344,8 @@
 							var tree = parent.compViewer_1.treePanel;
 							var sid = parent.compViewer_1.ns['lib'] + parent.getLocalName(surl);
 							var rec = tree.getStore().getNodeById(sid);
-							tree.fireEvent('itemclick', tree, rec);
+							if(rec)
+								tree.fireEvent('itemclick', tree, rec);
 							return false;
 						}
 					});
@@ -415,7 +419,7 @@
 			<input id="basicindent" name="indent" type="text" class="hidden" value="true" />
 
 			<input id="basictext" type="text" style="width:95%;" />
-			<input id="basicsubmit" type="submit" style="width:50%" />
+			<input id="basicsubmit" type="submit" style="width:30%; margin-top:5px" />
 
 			<div class="debug">
 				<hr/>

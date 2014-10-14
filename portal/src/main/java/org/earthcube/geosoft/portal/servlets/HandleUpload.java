@@ -40,6 +40,9 @@ public class HandleUpload extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
 		
+    if(config.isSandboxed())
+      return;
+    
 		String name = null;
 		String id = null;
 		String storageDir = config.getUserDir();

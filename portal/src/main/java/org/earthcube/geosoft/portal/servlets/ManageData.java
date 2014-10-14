@@ -92,6 +92,9 @@ public class ManageData extends HttpServlet {
 		  out.println(dv.getDataHierarchyJSON());
 		}
 
+    if(config.isSandboxed())
+      return;
+    
 		// Writer functions
 		if (op.equals("saveDataJSON")) {
 		  String propvals_json = request.getParameter("propvals_json");

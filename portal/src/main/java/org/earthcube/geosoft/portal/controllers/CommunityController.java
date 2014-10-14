@@ -42,7 +42,7 @@ public class CommunityController {
     try {
       api.initializeUser(config.getUserId());
       api.save();
-      ArrayList<String> users = api.listUserIds();
+      ArrayList<User> users = api.getAllUsers();
       
       out.println("<html>");
       out.println("<head>");

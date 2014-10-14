@@ -5,6 +5,7 @@ import org.earthcube.geosoft.util.URIEntity;
 public class User extends URIEntity{
   private static final long serialVersionUID = 1L;
   String username, picture, site, expertise, affiliation;
+  boolean isDeveloper;
 
   public User(String id) {
     super(id);
@@ -48,5 +49,13 @@ public class User extends URIEntity{
 
   public void setAffiliation(String affiliation) {
     this.affiliation = affiliation;
+  }
+
+  public boolean isDeveloper() {
+    return isDeveloper;
+  }
+
+  public void setDeveloper(boolean isDeveloper) {
+    this.isDeveloper = isDeveloper;
   }
 }

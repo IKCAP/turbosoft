@@ -1,11 +1,11 @@
-function SoftwareViewer(guid, store, op_url, upload_url, ontns, liburl, advanced_user) {
+function SoftwareViewer(guid, store, op_url, upload_url, ontns, liburl, editable) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.upload_url = upload_url;
     this.liburl = liburl;
     this.libname = liburl.replace(/.+\//, '').replace(/\.owl$/, '');
-    this.advanced_user = advanced_user;
+    this.editable = editable;
     
     this.ns = {};
     this.ns[''] = ontns;
@@ -63,7 +63,7 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
     });
     
     var tbar = null;
-    if (this.advanced_user) {
+    if (this.editable) {
     	var renitem = This.getRenameMenuItem();
         var delitem = This.getDeleteMenuItem();
         renitem.iconCls = "icon-edit fa fa-browngrey";
@@ -581,24 +581,24 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         }
     });
 
-	var editable = true;
-    var tbar = [];
-    if(editable) {
+    var tbar = null;
+    if(this.editable) {
     	tbar = [ inferbtn, checkbtn, savebtn ];
+    	tbar.push({xtype: 'tbfill'});
+    	tbar.push('-');
+    	tbar.push({
+    		iconCls : 'icon-reload fa fa-green',
+    		text : 'Reload',
+    		handler : function() {
+    			tab.getLoader().load();
+    			savebtn.setDisabled(true);
+    			tab.setTitle(tab.title.replace(/^\*/, ''));
+    		}
+    	});
     }
-    tbar.push({xtype: 'tbfill'});
-    tbar.push('-');
-	tbar.push({
-		iconCls : 'icon-reload fa fa-green',
-		text : 'Reload',
-		handler : function() {
-			tab.getLoader().load();
-			savebtn.setDisabled(true);
-			tab.setTitle(tab.title.replace(/^\*/, ''));
-		}
-	});
 	
-    tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, true);
+    tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
+    		This.editable);
     
     var mainPanelItems = [ tab.softwareEditor ];
     
@@ -607,7 +607,7 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
         border: false,
         tbar: tbar,
         layout: 'fit',
-        bodyStyle: editable ? '' : 'background-color:#ddd',
+        bodyStyle: This.editable ? '' : 'background-color:#ddd',
         items: mainPanelItems
     });
     tab.add(mainPanel);
@@ -685,16 +685,15 @@ SoftwareViewer.prototype.openSoftwareTypeEditor = function(args) {
 		} ]
 	};
 
-    var editable = true;
     var mainPanelItems = [ tab.form ];
     
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
-        tbar: editable ? [ savebtn ] : null,
+        tbar: This.editable ? [ savebtn ] : null,
         layout: 'fit',
         //tbar: tbar,
-        bodyStyle: editable ? '' : 'background-color:#ddd',
+        bodyStyle: This.editable ? '' : 'background-color:#ddd',
         items: mainPanelItems
     });
     tab.add(mainPanel);
@@ -988,6 +987,10 @@ SoftwareViewer.prototype.compareSoftwares = function(software, newsoftware) {
 
 SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form) {
 	var changes = this.compareSoftwares(software, newsoftware);
+	if(!changes.length) {
+		showInfo("No Suggestions !");
+		return;
+	}
 	var This = this;
 	
 	var grid = {
@@ -1077,9 +1080,10 @@ SoftwareViewer.prototype.showSuggestions = function(software, newsoftware, form)
 	                    field.provenance = {};
 	                    field.provenance[This.ns[''] + "isInferred"] = true;
 	                    field.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
-	                    field.setFieldStyle(This.getProvenanceStyle(field.provenance));
+	                    field.setFieldStyle(This.getProvenanceStyle(field.provenance, editable));
 						var infolabel = field.nextSibling('label');
-						infolabel.setText(This.getProvenanceHtml(field.provenance), false);
+						infolabel.setText(This.getProvenanceHtml(field.provenance, editable)
+								, false);
                     }
 					
                     mygrid.getStore().remove(rec);
@@ -1483,7 +1487,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			            header: 'File Location',
 			            menuDisabled: true,
 			            flex: 1,
-			            editor: true,
+			            editor: editable,
 						// TODO: Editor should be the uploader ?
 			            /*editor: new Ext.form.field.Trigger({
 		                    onTriggerClick: function() {
@@ -1525,9 +1529,9 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 		        	dataIndex: 'provenance',
 		        	header: 'Provenance',
 		        	flex: 1,
-		        	editable: false,
+		        	editable: editable,
 		        	renderer: function (v) {
-		        		return This.getProvenanceCreationHtml(v);
+		        		return This.getProvenanceCreationHtml(v, editable);
 		        	}
 		        });
 				
@@ -1557,40 +1561,42 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			    filegrid.proprole = proprole;
 			    
 				// Create a grid toolbar and have an "Add"/"Delete" button
-				filegrid.tbar = [{
-	                text: 'Add',
-	                iconCls: 'icon-add fa fa-green',
-	                handler: function() {
-	                	var fgrid = this.up('grid');
-	                    var gridStore = fgrid.getStore();
-	                    var pos = gridStore.getCount();
-	                    if(pos == 1 && !fgrid.pcui.multiple)
-	                    	return showError('Can only add 1 file here');
-
-	                    var sm = fgrid.getSelectionModel();
-	                    var role = eval("new "+fgrid.proprole+"();");
-	                    editorPlugin.cancelEdit();
-	                    gridStore.insert(pos, role);
-	                    editorPlugin.startEditByPosition({
-	                    	row:pos,
-	                    	column:1
-	                    });
-	                }
-	            }, {
-	                iconCls: 'icon-del fa fa-red',
-	                text: 'Delete',
-	                roletype: i,
-	                handler: function() {
-	                	var fgrid = this.up('grid');
-	                    var gridStore = fgrid.getStore();
-	                    editorPlugin.cancelEdit();
-	                    var s = fgrid.getSelectionModel().getSelection();
-	                    for (var i = 0, r; r = s[i]; i++) {
-	                        gridStore.remove(r);
-	                    }
-	                }
-	            }];
-				if(prop.label == "Code") {
+			    if(editable) {
+					filegrid.tbar = [{
+		                text: 'Add',
+		                iconCls: 'icon-add fa fa-green',
+		                handler: function() {
+		                	var fgrid = this.up('grid');
+		                    var gridStore = fgrid.getStore();
+		                    var pos = gridStore.getCount();
+		                    if(pos == 1 && !fgrid.pcui.multiple)
+		                    	return showError('Can only add 1 file here');
+	
+		                    var sm = fgrid.getSelectionModel();
+		                    var role = eval("new "+fgrid.proprole+"();");
+		                    editorPlugin.cancelEdit();
+		                    gridStore.insert(pos, role);
+		                    editorPlugin.startEditByPosition({
+		                    	row:pos,
+		                    	column:1
+		                    });
+		                }
+		            }, {
+		                iconCls: 'icon-del fa fa-red',
+		                text: 'Delete',
+		                roletype: i,
+		                handler: function() {
+		                	var fgrid = this.up('grid');
+		                    var gridStore = fgrid.getStore();
+		                    editorPlugin.cancelEdit();
+		                    var s = fgrid.getSelectionModel().getSelection();
+		                    for (var i = 0, r; r = s[i]; i++) {
+		                        gridStore.remove(r);
+		                    }
+		                }
+		            }];
+			    }
+				if(prop.label == "Code" && editable) {
 					filegrid.tbar.push({xtype: 'tbfill'}, '-');
 					if(auditResults) {
 						var lines = auditResults.split("\n");
@@ -1676,17 +1682,20 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 					value: propValues[prop.id],
 					flex: 1,
 					anchor: '100%',
+					disabled: !editable,
 					provenance: provenance,
-					fieldStyle: this.getProvenanceStyle(provenance),
+					fieldStyle: this.getProvenanceStyle(provenance, editable),
 					listeners: {
 						change: function (item, newv, oldv, opts) {
 							item.provenance = {};
 							item.provenance[This.ns[''] + "editedBy"] = USER_ID;
 							item.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
-							item.setFieldStyle(This.getProvenanceStyle(item.provenance));
+							item.setFieldStyle(This.getProvenanceStyle(item.provenance, editable));
 							
 							var infolabel = item.nextSibling('label');
-							infolabel.setText(This.getProvenanceHtml(item.provenance), false);
+							infolabel.setText(
+									This.getProvenanceHtml(item.provenance, editable), 
+									false);
 						}
 					}
 				};
@@ -1738,7 +1747,7 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 				else 
 					item.xtype = 'textfield';
 				
-				var info = this.getProvenanceHtml(provenance);
+				var info = this.getProvenanceHtml(provenance, editable);
 				var infoitem = {
 					xtype : 'label',
 					cls : 'info',
@@ -1765,8 +1774,9 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 	return editorPanel;
 };
 
-SoftwareViewer.prototype.getProvenanceHtml = function(provenance) {
+SoftwareViewer.prototype.getProvenanceHtml = function(provenance, editable) {
 	var info = "";
+	var x = !editable ? 'opacity:0.5': '';
 	if(provenance) {
 		var xns = this.ns[''];
 		var eby = provenance[xns+'editedBy'];
@@ -1774,23 +1784,24 @@ SoftwareViewer.prototype.getProvenanceHtml = function(provenance) {
 		var imp = provenance[xns+'importedFrom'];
 		var ts = provenance[xns+'timestamp'];
 		if(eby)
-			info += "<b style='color:blue'>Edited by "+eby+"</b>";
+			info += "<b style='color:blue;"+x+"'>Edited by "+eby+"</b>";
 		else if(inf)
-			info += "<b style='color:brown'>Turbosoft Suggestion"+"</b>";
+			info += "<b style='color:brown;"+x+"'>Turbosoft Suggestion"+"</b>";
 		else if(imp)
-			info += "<b style='color:green'>Imported from "+imp+"</b>";
+			info += "<b style='color:green;"+x+"'>Imported from "+imp+"</b>";
 		if(ts)
-			info += "<div style='color:grey'>(" + Ext.Date.format(new Date(ts), 
+			info += "<div style='color:grey;"+x+"'>(" + Ext.Date.format(new Date(ts), 
 					'F j Y, g:ia') + ")</div>";
 	}
 	else {
-		info = "<span style='color:grey'>No value</span>";
+		info = "<span style='color:grey;"+x+"'>No value</span>";
 	}
 	return info;
 };
 
-SoftwareViewer.prototype.getProvenanceCreationHtml = function(provenance) {
+SoftwareViewer.prototype.getProvenanceCreationHtml = function(provenance, editable) {
 	var info = "";
+	var x = !editable ? 'opacity:0.5': '';
 	if(provenance) {
 		var xns = this.ns[''];
 		var eby = provenance[xns+'editedBy'];
@@ -1799,26 +1810,29 @@ SoftwareViewer.prototype.getProvenanceCreationHtml = function(provenance) {
 		if(eby)
 			info += "By <b>"+eby+"</b>";
 		else if(inf)
-			info += "<b style='color:brown'>Turbosoft Suggestion"+"</b>";
+			info += "<b style='color:brown"+x+"'>Turbosoft Suggestion"+"</b>";
 		if(ts)
 			info += " on " + Ext.Date.format(new Date(ts), 'F j Y, g:ia');
 	}
 	if(!info)
-		info = "<i style='color:#999'>From original ontology</i>";
+		info = "<i style='color:#999"+x+"'>From original ontology</i>";
 	return info;
 };
 
-SoftwareViewer.prototype.getProvenanceStyle = function(provenance) {
+SoftwareViewer.prototype.getProvenanceStyle = function(provenance, editable) {
+	var style = "color:grey";
 	if(provenance) {
 		var xns = this.ns[''];
 		if(provenance[xns+'editedBy'])
-			return "color:blue";
+			style = "color:blue";
 		if(provenance[xns+'isInferred'])
-			return "color:brown";
+			style = "color:brown";
 		if(provenance[xns+'importedFrom'])
-			return "color:green";
+			style = "color:green";
 	}
-	return "color:grey";
+	if(!editable)
+		style += ";opacity:0.5";
+	return style;
 };
 
 SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types, 
@@ -1921,7 +1935,7 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
         	flex: 1,
         	editable: false,
         	renderer: function (v) {
-        		return This.getProvenanceCreationHtml(v);
+        		return This.getProvenanceCreationHtml(v, editable);
         	}
         }];
 
@@ -2186,7 +2200,7 @@ SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo,
 	        	flex: 1,
 	        	editable: false,
 	        	renderer: function (v) {
-	        		return This.getProvenanceCreationHtml(v);
+	        		return This.getProvenanceCreationHtml(v, editable);
 	        	}
 	        }];
 
@@ -2639,7 +2653,7 @@ SoftwareViewer.prototype.getStandardNamesEditor = function(c, store, sninfo,
 	        	flex: 1,
 	        	editable: false,
 	        	renderer: function (v) {
-	        		return This.getProvenanceCreationHtml(v);
+	        		return This.getProvenanceCreationHtml(v, editable);
 	        	}
 	        }];
 

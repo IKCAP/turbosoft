@@ -70,6 +70,10 @@ public class DescribeSoftware extends HttpServlet {
 		  out.print(mc.getSoftwareTypeJSON(typeid));
 		}
 
+		if(config.isSandboxed())
+		  return;
+		
+		// Write functions
 		if (op.equals("saveSoftwareJSON")) {
 		  String software_json = request.getParameter("software_json");
 		  if (!config.isSandboxed())

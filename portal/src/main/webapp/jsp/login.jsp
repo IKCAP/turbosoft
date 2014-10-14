@@ -52,10 +52,12 @@ Ext.onReady(function() {
 					},
 					{
 						fieldLabel: 'Username',
+						id: 'username',
 						name: 'j_username',
 						allowBlank: false
 					}, {
 						fieldLabel: 'Password',
+						id: 'password',
 						name: 'j_password',
 						inputType: 'password',
 						allowBlank: false,
@@ -72,6 +74,14 @@ Ext.onReady(function() {
 					buttons: [{
 						text: 'Login',
 						handler: function() {
+							this.up('form').getForm().standardSubmit=true;
+							this.up('form').getForm().submit();
+						}
+					}, {
+						text: 'Login as Guest',
+						handler: function() {
+							this.up('form').down('#username').setValue("guest");
+							this.up('form').down('#password').setValue("guest");
 							this.up('form').getForm().standardSubmit=true;
 							this.up('form').getForm().submit();
 						}

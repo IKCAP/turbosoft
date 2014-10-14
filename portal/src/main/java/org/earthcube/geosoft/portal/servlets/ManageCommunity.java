@@ -65,6 +65,9 @@ public class ManageCommunity extends HttpServlet {
         out.println(uc.getUserJSON(userid));
       }
 
+      if(config.isSandboxed())
+        return;
+      
       // Writer functions
       if (op.equals("saveUserJSON")) {
         String uservals_json = request.getParameter("json");

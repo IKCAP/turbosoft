@@ -154,8 +154,27 @@ function getPortalHeader(path) {
 			});
 }
 
-function getPortalFooter() {
-	
+function getPortalFooter(path) {
+	/*var html = '<div class="home_footer">'
+		+ '<div style="float:left;padding-right:5px">'
+		+ '<img src="' + path + '/images/nsf-logo.gif" ' 
+		+ 'title="NSF" style="float:left" />'
+		+ '<img src="' + path + '/images/earthcube-logo.png" '
+		+ 'title="Earthcube" style="float:left" />'
+		+ '</div>'	
+		+ '<div style="height:36px;padding-top:8px">'
+		+ 'The GeoSoft project is funded by the National Science Foundation under ' 
+		+ 'the EarthCube Initiative through grants ICER-1343800 and ICER-1440323'
+		+ '</div>'
+		+ '</div>';
+	return {
+		xtype : 'component',
+		id : "app-south",
+		region : 'south',
+		height : 36,
+		html : html,
+		margins : '0 5 2 5'
+	};*/
 }
 
 function setURLComboListOptions(copts, data, selection, emptyText, editable,

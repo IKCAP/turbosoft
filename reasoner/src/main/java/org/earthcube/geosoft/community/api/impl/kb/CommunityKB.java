@@ -87,6 +87,7 @@ public class CommunityKB implements CommunityAPI {
     KBObject expobj = this.kb.getPropertyValue(userobj, dataPropMap.get("hasExpertise"));
     KBObject picobj = this.kb.getPropertyValue(userobj, dataPropMap.get("hasPicture"));
     KBObject siteobj = this.kb.getPropertyValue(userobj, dataPropMap.get("hasWebsite"));
+    KBObject devobj = this.kb.getPropertyValue(userobj, dataPropMap.get("isDeveloper"));
     
     if(nameobj != null && nameobj.getValue() != null)
       user.setUsername(nameobj.getValue().toString());
@@ -98,6 +99,8 @@ public class CommunityKB implements CommunityAPI {
       user.setPicture(picobj.getValue().toString());
     if(siteobj != null && siteobj.getValue() != null)
       user.setSite(siteobj.getValue().toString());
+    if(devobj != null && devobj.getValue() != null)
+      user.setDeveloper((Boolean)devobj.getValue());    
     
     return user;
   }
@@ -135,6 +138,8 @@ public class CommunityKB implements CommunityAPI {
     if(user.getSite() != null)
       this.writerkb.setPropertyValue(userobj, dataPropMap.get("hasWebsite"),
           ontologyFactory.getDataObject(user.getSite()));
+    this.writerkb.setPropertyValue(userobj, dataPropMap.get("isDeveloper"),
+        ontologyFactory.getDataObject(user.isDeveloper()));    
     return true;
   }
 

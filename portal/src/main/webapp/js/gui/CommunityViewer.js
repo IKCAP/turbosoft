@@ -113,6 +113,7 @@ CommunityViewer.prototype.openUserEditor = function(args) {
         disabled: true,
         handler: function(btn) {
         	var form = tab.down('form');
+        	var tree = tab.up('viewport').down('treepanel');
         	var fields = form.getForm().getFields();
         	var user = {id: id};
         	fields.each(function(field) {
@@ -134,10 +135,17 @@ CommunityViewer.prototype.openUserEditor = function(args) {
 						});
                         savebtn.setDisabled(true);
                         tab.setTitle(tab.title.replace(/^\*/, ''));
-                        // Update HTML and return
+                        // Update HTML
                         var hpanel = btn.up('panel').up('panel').items.items[0];
                         btn.up('panel').up('panel').getLayout().setActiveItem(0);
                         hpanel.items.items[0].body.update(This.getProfileHTML(user));
+                        // Update Treepanel
+                        var node = tree.getStore().getNodeById(id);
+                        if(user.isDeveloper)
+                        	tree.getStore().getNodeById('_devs').appendChild(node);
+                        else
+                        	tree.getStore().getNodeById('_contribs').appendChild(node);
+                        tree.getStore().sort('text', 'ASC');
                     } else {
                         Ext.MessageBox.show({
                             icon: Ext.MessageBox.ERROR,
@@ -193,6 +201,11 @@ CommunityViewer.prototype.openUserEditor = function(args) {
 			name : 'affiliation',
 			fieldLabel : 'Affiliation',
 			value: userStore.affiliation
+		}, {
+			name : 'isDeveloper',
+			xtype : 'checkbox',
+			fieldLabel : 'Is Developer ?',
+			checked: userStore.isDeveloper
 		}
 		],
 		listeners: {
@@ -246,6 +259,8 @@ CommunityViewer.prototype.createLeftPanel = function() {
 		listeners : {
 			itemclick : function(view, rec, item, ind, event) {
 				var id = rec.data.id;
+				if(id[0] == '_')
+					return;
 		        var path = getTreePath(rec, 'text');
 		        var tabName = getLocalName(id);
 
@@ -314,20 +329,42 @@ CommunityViewer.prototype.openNewIconTab = function(tabname, iconCls) {
 };
 
 CommunityViewer.prototype.getTree = function(users) {
+	var contribs = {
+		text: "Contributors",
+		id: "_contribs",
+		expanded: true,
+		iconCls: 'icon-folder fa fa-yellow',
+		expIconCls: 'icon-folder-open fa fa-yellow',			
+		children: []
+	};
+	var devs = {
+		text: "Developers",
+		id: "_devs",
+		expanded: true,
+		iconCls: 'icon-folder fa fa-yellow',
+		expIconCls: 'icon-folder-open fa fa-yellow',		
+		children: []
+	};
 	var root = {
-	        text: "Users",
-	        id: "_users",
-	        expanded: true,
-	        children: []
-	    };
+		text: "Users",
+		id: "_users",
+		expanded: true,
+		children: [contribs, devs]
+	};
 	for(var i=0; i<users.length; i++) {
-		var userid = users[i];
-	    root.children.push({
-	            text: getLocalName(userid),
-	            id: userid,
-	            iconCls: 'icon-user fa-tree fa-green',
-	            leaf: true
-	        });
+		var user = users[i];
+		if(getLocalName(user.id) == "guest")
+			continue;
+		var userobj = {
+            text: getLocalName(user.id),
+            id: user.id,
+            iconCls: 'icon-user fa-tree fa-green',
+            leaf: true
+        }		
+		if(user.isDeveloper)
+			devs.children.push(userobj);
+		else
+			contribs.children.push(userobj);
 	}
 	return root;
 };
