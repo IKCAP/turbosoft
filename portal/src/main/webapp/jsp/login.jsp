@@ -78,7 +78,8 @@ Ext.onReady(function() {
 							this.up('form').getForm().submit();
 						}
 					}, {
-						text: 'Login as Guest',
+						text: 'Guest Login',
+						cls: 'highlightedButton',  
 						handler: function() {
 							this.up('form').down('#username').setValue("guest");
 							this.up('form').down('#password').setValue("guest");

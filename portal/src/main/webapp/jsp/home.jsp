@@ -32,7 +32,9 @@
 	<p>TurboSoft is still under development.  Please <a href="mailto:varunr@isi.edu">contact us</a> if you 
 	would like to contribute and be an early adopter.</p>
 
-	<p>TurboSoft is part of the NSF EarthCube GeoSoft project.</p>  
+	<p>TurboSoft is part of the 
+	<a href="http://www.geosoft-earthcube.org">NSF EarthCube GeoSoft project</a>.
+	</p>  
 
 	<p>If you are interested in using the Turbosoft system with your own framework, 
 	or in setting up your own installation of a Turbosoft portal, please 
