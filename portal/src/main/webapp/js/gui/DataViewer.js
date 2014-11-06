@@ -1083,7 +1083,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
         autoScroll: true,
         rootVisible: false,
         useArrows: true,
-        title: 'Data',
+        title: 'File Types',
         iconCls: 'icon-file-alt fa-title fa-blue',
         containerScroll: true,
         store: This.dataTreeStore,

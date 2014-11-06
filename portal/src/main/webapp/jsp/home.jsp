@@ -29,7 +29,7 @@
 	for model frameworks.</li>
 	</ol>
 
-	<p>TurboSoft is still under development.  Please <a href="mailto:varunr@isi.edu">contact us</a> if you 
+	<p>TurboSoft is still under development.  Please <a href="mailto:geosoft.earthcube@gmail.com">contact us</a> if you 
 	would like to contribute and be an early adopter.</p>
 
 	<p>TurboSoft is part of the 
@@ -38,7 +38,7 @@
 
 	<p>If you are interested in using the Turbosoft system with your own framework, 
 	or in setting up your own installation of a Turbosoft portal, please 
-	<a href="mailto:varunr@isi.edu">contact us</a>.</p>
+	<a href="mailto:geosoft.earthcube@gmail.com">contact us</a>.</p>
 	
 	<div class="home_footer">
 		<div style="float:left;padding-right:5px">
