@@ -1,4 +1,4 @@
-The Turbosoft portal provides access to Geosoft's Turbosoft system (http://www.isi.edu/ikcap/geosoft/) by allowing you to browse, and add models to the repository. 
+The Turbosoft portal provides access to Geosoft's Turbosoft system (http://www.geosoft-earthcube.org/) by allowing you to browse, and add models to the repository. 
 
 Demo here:
 http://www.geosoft-earthcube.org/turbosoft-portal/
