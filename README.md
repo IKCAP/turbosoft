@@ -1,7 +1,7 @@
 The Turbosoft portal provides access to Geosoft's Turbosoft system (http://www.isi.edu/ikcap/geosoft/) by allowing you to browse, and add models to the repository. 
 
 Demo here:
-http://seagull.isi.edu:8080/turbosoft-portal/
+http://www.geosoft-earthcube.org/turbosoft-portal/
 
 Installation
 =============
@@ -14,7 +14,7 @@ Requirements
 Installation
 -------------
 1. $ mvn clean install
-	- This will create a turbosoft-portal-<version>.war file in portal/target
+	- This will create a turbosoft-portal-[version].war file in portal/target
 
 2. Move the war file to a Servlet container (Tomcat)
 	- $ mv /path/to/turbosoft-portal-<version>.war /path/to/tomcat/webapps/turbosoft-portal.war
@@ -25,7 +25,7 @@ Installation
 4. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-5. Login to http://<your-server-name>:8080/turbosoft-portal
+5. Login to http://[your-server-name]:8080/turbosoft-portal
 
 6. After first Login, go to $HOME/.turbosoft directory and open portal.properties
 	- Check that the server name is set correctly
