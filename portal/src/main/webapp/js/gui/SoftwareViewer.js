@@ -62,20 +62,49 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         sorters: ['text']
     });
     
-    var tbar = null;
+    var tbar = [];
     if (this.editable) {
     	var renitem = This.getRenameMenuItem();
         var delitem = This.getDeleteMenuItem();
         renitem.iconCls = "icon-edit fa fa-browngrey";
         delitem.iconCls = "icon-del fa fa-red";
-        tbar = [{
-        	text: 'Add',
-    	    iconCls: 'icon-add fa fa-green',
-    	    menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
+        // Edit toolbar
+        tbar.push({
+        	xtype: 'toolbar',
+        	dock: 'top',
+        	items: [{
+        		text: 'Add',
+        		iconCls: 'icon-add fa fa-green',
+        		menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
     	          '-', This.getImportMenuItem()]
-        },
-        renitem, delitem];
+        	},
+        	renitem, delitem]
+        });
     }
+    // Filter toolbar
+    tbar.push({
+    	xtype: 'toolbar',
+    	dock: 'top',
+    	items: {
+    		fieldLabel: 'Filter',
+         	margin: 2,
+         	labelWidth: 30,
+         	xtype: 'trigger',
+         	width: '100%',
+         	triggerCls: 'x-form-clear-trigger',
+         	onTriggerClick: function () {
+         		this.reset();
+         		this.focus();
+         	},
+         	listeners: {
+         		change: function (field, newVal) {
+         			var tree = field.up('treepanel');
+         			tree.filter(newVal);
+         		},
+         		buffer: 250
+         	}
+    	}
+    });
     
     var treePanel = new Ext.tree.TreePanel({
         width: '100%',
@@ -86,7 +115,6 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         useArrows: true,
         iconCls: iconCls,
         //bodyCls: 'x-docked-noborder-top',
-        tbar: tbar,
         title: title,
         store: treeStore,
         url: This.op_url,
@@ -98,6 +126,11 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
             },
             stripeRows: true
         },
+        plugins: {
+            ptype: 'treefilter',
+            allowParentFolders: true
+        }, 
+        dockedItems: tbar,
         listeners: {
             itemcontextmenu: {
                 fn: This.onSoftwareItemContextMenu,

@@ -230,46 +230,135 @@ function showHelp(id) {
 	}).show();
 };
 
-/*
- * Uncached Cell Editing Allows full flexibility of editors based on record data
- * *WARNING* -- will create a new cell editor for each row !! *WARNING* -- don't
- * use for grids with a large number of cells and records
- */
-Ext.define('Ext.grid.plugin.FlexibleCellEditing', {
-	extend : Ext.grid.plugin.CellEditing,
-	getEditor : function(record, column) {
-		var me = this;
-		// var editors = me.editors;
-		var editorId = column.getItemId();
-		// editorId += "-"+getLocalName(record.get('subject'));
-		// editorId += "-"+getLocalName(record.get('predicate'));
-		/*
-		 * for(var key in record.getData()) { editorId += record.get(key)+"|"; }
-		 */
-		// var editor = editors.getByKey(editorId);
-		var editorOwner = me.grid.ownerLockable || me.grid;
-		// editor = null;
-		// if(!editor) {
-		var coleditor = column.getEditor(record);
-		if (!coleditor)
-			return false;
-		editor = new Ext.grid.CellEditor({
-			floating : true,
-			editorId : editorId,
-			field : coleditor
-		});
-		editorOwner.add(editor);
-		editor.on({
-			scope : me,
-			specialkey : me.onSpecialKey,
-			complete : me.onEditComplete,
-			canceledit : me.cancelEdit
-		});
-		column.on('removed', me.cancelActiveEdit, me);
-		// editors.add(editor);
-		// }
-		editor.grid = me.grid;
-		editor.editingPlugin = me;
-		return editor;
-	}
+Ext.onReady(function () {
+	/* TreeFilter 
+	 * @author: Seth Lemmons
+	 * @site: http://sethlemmons.com/blog
+	 */
+    Ext.define('TreeFilter', {
+        extend: 'Ext.AbstractPlugin', 
+        alias: 'plugin.treefilter',
+        collapseOnClear: false,
+        allowParentFolders: false,        
+        	init: function (tree) {
+        		var me = this;
+        		me.tree = tree;
+        		tree.filter = Ext.Function.bind(me.filter, me);
+        		tree.clearFilter = Ext.Function.bind(me.clearFilter, me);
+        	}, 
+
+        	filter: function (value, property, re) {
+                var me = this, 
+                    tree = me.tree,
+                    matches = [],
+                    root = tree.getRootNode(),
+                    property = property || 'text',
+                    re = re || new RegExp(value, "ig"),
+                    visibleNodes = [],
+                    viewNode;
+
+                if (Ext.isEmpty(value)) {
+                    me.clearFilter();
+                    return;
+                }
+
+                tree.expandAll();
+
+                root.cascadeBy(function (node) {
+                    if (node.get(property).match(re)) {
+                        matches.push(node);
+                    }
+                });
+
+                if (me.allowParentFolders === false) {
+                    Ext.each(matches, function (match) {
+                        if (!match.isLeaf()) {
+                            Ext.Array.remove(matches, match);
+                        }
+                    });
+                }
+
+                Ext.each(matches, function (item, i, arr) {
+                    root.cascadeBy(function (node) {
+                        if (node.contains(item) == true) {
+                            visibleNodes.push(node);
+                        }
+                    });
+                    if (me.allowParentFolders === true && !item.isLeaf()) {
+                        item.cascadeBy(function (node) {
+                            visibleNodes.push(node);
+                        });
+                    }
+                    visibleNodes.push(item);
+                });
+
+                root.cascadeBy(function (node) {
+                    viewNode = Ext.fly(tree.getView().getNode(node));
+                    if (viewNode) {
+                        viewNode.setVisibilityMode(Ext.Element.DISPLAY);
+                        viewNode.setVisible(Ext.Array.contains(visibleNodes, node))
+                    }
+                });
+            },
+
+            clearFilter: function () {
+                var me = this,
+                	tree = this.tree,
+                	root = tree.getRootNode();
+
+                if (me.collapseOnClear) {
+                    tree.collapseAll();
+                }
+                root.cascadeBy(function (node) {
+                    viewNode = Ext.fly(tree.getView().getNode(node));
+                    if (viewNode) {
+                        viewNode.show();
+                    }
+                });
+            }
+    });
+
+	/*
+	 * Uncached Cell Editing Allows full flexibility of editors based on record data
+	 * *WARNING* -- will create a new cell editor for each row !! *WARNING* -- don't
+	 * use for grids with a large number of cells and records
+	 */
+	Ext.define('Ext.grid.plugin.FlexibleCellEditing', {
+		extend : Ext.grid.plugin.CellEditing,
+		getEditor : function(record, column) {
+			var me = this;
+			// var editors = me.editors;
+			var editorId = column.getItemId();
+			// editorId += "-"+getLocalName(record.get('subject'));
+			// editorId += "-"+getLocalName(record.get('predicate'));
+			/*
+			 * for(var key in record.getData()) { editorId += record.get(key)+"|"; }
+			 */
+			// var editor = editors.getByKey(editorId);
+			var editorOwner = me.grid.ownerLockable || me.grid;
+			// editor = null;
+			// if(!editor) {
+			var coleditor = column.getEditor(record);
+			if (!coleditor)
+				return false;
+			editor = new Ext.grid.CellEditor({
+				floating : true,
+				editorId : editorId,
+				field : coleditor
+			});
+			editorOwner.add(editor);
+			editor.on({
+				scope : me,
+				specialkey : me.onSpecialKey,
+				complete : me.onEditComplete,
+				canceledit : me.cancelEdit
+			});
+			column.on('removed', me.cancelActiveEdit, me);
+			// editors.add(editor);
+			// }
+			editor.grid = me.grid;
+			editor.editingPlugin = me;
+			return editor;
+		}
+	});
 });
