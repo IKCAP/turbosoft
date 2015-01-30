@@ -239,7 +239,8 @@ Ext.onReady(function () {
         extend: 'Ext.AbstractPlugin', 
         alias: 'plugin.treefilter',
         collapseOnClear: false,
-        allowParentFolders: false,        
+        allowParentFolders: false, 
+        curmatches: null,
         	init: function (tree) {
         		var me = this;
         		me.tree = tree;
@@ -265,10 +266,21 @@ Ext.onReady(function () {
                 tree.expandAll();
 
                 root.cascadeBy(function (node) {
-                    if (node.get(property).match(re)) {
-                        matches.push(node);
-                    }
+                	if(me.curmatches && !Ext.Array.contains(me.curmatches, node))
+                		return;
+                	
+                	if(typeof(value) == "string") {
+                		if (node.get(property).match(re)) {
+                			matches.push(node);
+                		}
+                	}
+                	else {
+                		if (node.raw[property] == value) {
+                			matches.push(node);
+                		}
+                	}
                 });
+                me.curmatches = matches;
 
                 if (me.allowParentFolders === false) {
                     Ext.each(matches, function (match) {
@@ -306,6 +318,8 @@ Ext.onReady(function () {
                 	tree = this.tree,
                 	root = tree.getRootNode();
 
+                me.curmatches = null;
+                
                 if (me.collapseOnClear) {
                     tree.collapseAll();
                 }

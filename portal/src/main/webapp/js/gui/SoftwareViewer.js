@@ -53,7 +53,7 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
     if (!Ext.ModelManager.isRegistered('compTreeRecord'))
         Ext.define('compTreeRecord', {
 	        extend: 'Ext.data.Model',
-	        fields: ['text', 'software']
+	        fields: ['text', 'software', 'mine']
         });
 
     var treeStore = Ext.create('Ext.data.TreeStore', {
@@ -78,15 +78,36 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
         		menu:[This.getAddSoftwareMenuItem(), This.getAddSoftwareTypeMenuItem(),
     	          '-', This.getImportMenuItem()]
         	},
-        	renitem, delitem]
+        	renitem, delitem,
+        	{
+        		xtype: 'button',
+        		itemId: 'taskbtn',
+        		enableToggle: true,
+        		iconCls: 'icon-users fa fa-green',
+        		text: 'All',
+                handler: function () {
+                	var tree = this.up('treepanel');
+                	if(this.pressed) {
+             			tree.filter(true, 'mine');
+                		this.setText('My edits');
+                		this.setIconCls('icon-user fa fa-green');
+                	} else {
+                		tree.clearFilter();
+                		tree.filter(tree.down('trigger').value);
+                		this.setText('All');
+                		this.setIconCls('icon-users fa fa-green');
+                	}
+                }
+        	}]
         });
     }
     // Filter toolbar
     tbar.push({
     	xtype: 'toolbar',
-    	dock: 'top',
+    	dock: 'bottom',
     	items: {
     		fieldLabel: 'Filter',
+    		emptyText: 'Enter text to filter by..',
          	margin: 2,
          	labelWidth: 30,
          	xtype: 'trigger',
@@ -99,7 +120,15 @@ SoftwareViewer.prototype.getSoftwareTreePanel = function(root, title, iconCls, e
          	listeners: {
          		change: function (field, newVal) {
          			var tree = field.up('treepanel');
-         			tree.filter(newVal);
+             		var taskbtn = tree.down('#taskbtn');
+             		if(!newVal) {
+                 		tree.clearFilter();
+             			if(taskbtn.pressed)
+             				tree.filter(true, 'mine');
+             		}
+             		else {
+             			tree.filter(newVal);
+             		}
          		},
          		buffer: 250
          	}
@@ -212,9 +241,11 @@ SoftwareViewer.prototype.getSoftwareTree = function(list) {
     	var node = nodes[software.classId];
     	if(!node)
     		continue;
+	    var mine = Ext.Array.contains(this.store.my_softwares, software.id);
     	node.children.push({
     		id: software.id,
     		text: getLocalName(software.id),
+			mine: mine,
     		leaf: true,
     		iconCls: 'icon-component fa-tree fa-orange'
     	});
@@ -3144,7 +3175,7 @@ SoftwareViewer.prototype.initialize = function() {
     var This = this;
     var leftPanel = new Ext.TabPanel({
         region: 'west',
-        width: 270,
+        width: 300,
         split: true,
         plain: true,
         margins: '5 0 5 5',

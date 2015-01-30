@@ -40,6 +40,7 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
+import edu.isi.wings.ontapi.SparqlQuerySolution;
 import edu.isi.wings.ontapi.rules.KBRuleList;
 
 public class SoftwareKB implements SoftwareAPI {
@@ -203,6 +204,25 @@ public class SoftwareKB implements SoftwareAPI {
         softwares.add(getSoftware(softwareobj.getID(), details));
       }
       queue.addAll(type.getSubtypes());
+    }
+    return softwares;
+  }
+  
+  @Override
+  public ArrayList<String> getSoftwareIdsByUser(String userid) {
+    ArrayList<String> softwares = new ArrayList<String>();
+    String sparql = "SELECT DISTINCT ?s FROM "; 
+    sparql += "<"+ liburl +">\n";
+    sparql += "WHERE {\n";
+    sparql += "?s ?p ?o .\n";
+    sparql += "?o <"+ ontns + "editedBy> "
+        + "\""+ userid +"\"^^<" + KBUtils.XSD +"string>\n";
+    sparql += "}\n";
+    for(ArrayList<SparqlQuerySolution> sollist : this.kb.sparqlQuery(sparql)) {
+      for(SparqlQuerySolution sol : sollist) {
+        if(!sol.getObject().isAnonymous())
+          softwares.add(sol.getObject().getID());
+      }
     }
     return softwares;
   }

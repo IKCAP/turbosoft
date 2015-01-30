@@ -78,6 +78,7 @@ public class SoftwareController {
       String software_types = json.toJson(typeroot);
       String data_types = json.toJson(dapi.getAllDatatypeIds());
       String props = json.toJson(api.getAllSoftwareProperties(true));
+      String my_softwares = json.toJson(api.getSoftwareIdsByUser(config.getUserId()));
       
       HashMap<String, Object> sninfo = new HashMap<String, Object>();
       sninfo.put("repos", config.getStandardNamesOntologies());
@@ -102,6 +103,7 @@ public class SoftwareController {
           + "compViewer_" + guid + " = new SoftwareViewer('" + guid + "', { "
           + " softwares:" + list + ", "
           + " software_types:" + software_types + ", "
+          + " my_softwares:" + my_softwares + ", "
           + " data_types:" + data_types + ", "
           + " properties:" + props + ", "
           + " sninfo: " + json.toJson(sninfo)

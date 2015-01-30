@@ -29,6 +29,8 @@ public interface SoftwareAPI {
   
   Software getSoftware(String softwareid, boolean details);
   
+  ArrayList<String> getSoftwareIdsByUser(String userid);
+  
   // Update
   boolean addSoftware(Software software);
 
