@@ -663,6 +663,8 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
 	
     tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
     		This.editable);
+//    tab.softwareEditor = This.getDemoSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
+//    		This.editable);
     
     var mainPanelItems = [ tab.softwareEditor ];
     
@@ -1327,6 +1329,119 @@ SoftwareViewer.prototype.getSoftwareComboBox = function(mstore) {
 	};
 };
 
+SoftwareViewer.prototype.getDemoSoftwareEditor = function (id, store, props, maintab, savebtn, editable) {
+	var This = this;
+	var dtypes = this.store.data_types;
+	
+	var propById = {};
+	var propValues = {};
+	var propProv = {};
+	var prop = [];
+	for(var i=0; i<store.propertyValues.length; i++) {
+		var pv = store.propertyValues[i];
+		var prop = pv.propertyId;
+		
+		// Store value provenance
+		var provObject = {};
+		var prov = pv.provenance;
+		for(var j=0; j<prov.length; j++) {
+			var ppv = prov[j];
+			var pprop = ppv.propertyId;
+			provObject[pprop] = ppv.value;
+		}
+		if(!propProv[prop])
+			propProv[prop] = provObject;
+		pv.value.provenance = provObject;
+		
+		// Store value
+		var curval = propValues[prop];
+		if(curval) {
+			if(Array.isArray(curval)) 
+				propValues[prop].push(pv.value);
+			else
+				propValues[prop] = [curval, pv.value];
+		}
+		else
+			propValues[prop] = pv.value;
+	}
+	
+	for(var i=0; i<props.length; i++) {
+		var prop = props[i];
+		propById[prop.id] = prop;
+	}
+		
+	var igrid = This.getIOGrid(store.inputs, 'input', dtypes, maintab, savebtn, editable);
+	var ogrid = This.getIOGrid(store.outputs, 'output', dtypes, maintab, savebtn, editable);
+	Ext.apply(igrid, {title: '<i class="'+igrid.iconCls+'"></i> '+igrid.title, 
+		iconCls: null, border: true, flex: 1, margin: '0 5 0 0'});
+	Ext.apply(ogrid, {title: '<i class="'+ogrid.iconCls+'"></i> '+ogrid.title, 
+		iconCls: null, border: true, flex: 1});
+	
+	var dpropid = "http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Description";
+	var dprop = propById[dpropid];
+	var desced = This.getDefaultFieldEditor(dprop, propValues[dpropid], propProv[dpropid], editable, true)
+
+	var editorPanel = {
+		xtype: 'form',
+		fieldDefaults: {
+			msgTarget: 'side',
+			labelWidth: 150
+		},
+		frame: false,
+		border: false,
+		layout: 'border',
+		items: [{
+			region: 'east',
+			xtype: 'panel',
+			frame: true,
+			margin: '5 5 5 0',
+			border: false,
+			width: 200,
+			title: 'CHECKLIST',
+			html: 
+				'<style>div.btn{' +
+				'padding:5px;margin:2px;background-color:rgba(0,0,0,0.1);'+
+				'border-radius:5px; border-width:1px; border-style: solid; border-color:rgba(0,0,0,0.15);' +
+				'} '+
+				'div.sel{background-color:rgba(255,240,100,0.5) !important;'+
+				'border-color:rgba(240,220,80,0.8) !important;}'+
+				'</style>' +
+				'<div class="btn sel"><i class="fa fa-green icon-select"></i> Shareable</div>' +
+				'<div class="btn"><i class="fa fa-green icon-select"></i> Searchable</div>' +
+				'<div class="btn"><i class="fa fa-red icon-cancel"></i> Runnable</div>' +
+				'<div class="btn"><i class="fa fa-red icon-cancel"></i> Advanced</div>' +
+				'</ul>'
+		}, {
+			region: 'center',
+			frame: true,
+			margin: 5,
+			//layout: 'vbox',
+			border: false,
+			items: [
+				desced, 
+				{
+					layout: 'hbox',
+					border: false,
+					margin: 3,
+					bodyStyle: 'background:transparent',
+					items: [
+				        igrid, ogrid
+					]
+				}
+			]
+		}],
+		listeners: {
+			dirtychange: function(item, dirty, opts) {
+				if(dirty) {
+					savebtn.setDisabled(false);
+					maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
+				}
+			}
+		}
+	};
+	return editorPanel;
+};
+
 SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab, savebtn, editable) {
 	var editorPanel = {
 		xtype: 'form',
@@ -1522,320 +1637,331 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			if(!comp)
 				comp = propContainer[catlabel];
 			if(!comp) continue;
+			var value = propValues[prop.id];
 			var provenance = propProv[prop.id];
-			
 			if(pcui && pcui.isfile) {
-		        var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
-		            clicksToEdit: 1,
-		            listeners: {
-		            	edit: function(editor, e, opts) {
-		            		// Set provenance if value changed
-		            		if(e.value != e.originalValue) {
-		            			var prov = {};
-		            			prov[This.ns[''] + "editedBy"] = USER_ID;
-		    					prov[This.ns[''] + "timestamp"] = (new Date()).getTime();
-		    					e.record.set('provenance', prov);
-		            		}
-		            	}
-		            }
-		        });
-				// Create a grid
-				var filegrid = {
-					xtype: 'grid',
-					type: 'filegrid',
-					propid: prop.id,
-					title: prop.label,
-					range: prop.range,
-			        columns: [{
-			            dataIndex: 'hasFileLocation',
-			            header: 'File Location',
-			            menuDisabled: true,
-			            flex: 1,
-			            editor: editable,
-						// TODO: Editor should be the uploader ?
-			            /*editor: new Ext.form.field.Trigger({
-		                    onTriggerClick: function() {
-								// Open up upload window
-		                    }
-			            })*/
-			        }],
-			        plugins: [editorPlugin],
-			        selModel: Ext.create('Ext.selection.CheckboxModel'),
-		            selType: 'cellmodel',
-		            bodyCls: "multi-line-grid",
-		            columnLines: true,
-		            autoHeight: true
-				};
-				
-				var fields = ['hasFileLocation'];
-				
-				// Columns of the grid (all with simple text editors for now): 
-				// - file location (populated with propValues[id].hasFileLocation)
-				// - for each prop in extra
-				//   - extraprop.label (populated with propValues[id].[extraProp]
-				if(pcui.extra) {
-					for(var j=0; j<pcui.extra.length; j++) {
-						var extraprop = This.properties[this.ns[''] + pcui.extra[j]];
-						var extrapcom = This.propcomments[extraprop.id];
-						filegrid.columns.push({
-							dataIndex: getLocalName(extraprop.id),
-							header: extraprop.label ? 
-									extraprop.label : getLocalName(extraprop.id),
-							menuDisabled: true,
-							//flex: 1,
-							editor: true
-						});
-						fields.push(getLocalName(extraprop.id));
-					}
-				}
-				fields.push('provenance');
-				filegrid.columns.push({
-		        	dataIndex: 'provenance',
-		        	header: 'Provenance',
-		        	flex: 1,
-		        	editable: editable,
-		        	renderer: function (v) {
-		        		return This.getProvenanceCreationHtml(v, editable);
-		        	}
-		        });
-				
-				var proprole = 'FileRole'+getLocalName(prop.id);
-			    if (!Ext.ModelManager.isRegistered(proprole))
-			        Ext.define(proprole, {
-				        extend: 'Ext.data.Model',
-				        fields: fields
-			        });
-
-			    filegrid.store = {
-			    	xtype: 'store',
-			        model: proprole,
-			        data: propValues[prop.id],
-			        listeners: {
-			        	update: function() {
-							maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
-			        		savebtn.setDisabled(false);
-			        	}, 
-			        	remove: function(store,records) {
-							maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
-			        		savebtn.setDisabled(false);
-			        	}
-			        }
-			    };
-			    filegrid.pcui = pcui;
-			    filegrid.proprole = proprole;
-			    
-				// Create a grid toolbar and have an "Add"/"Delete" button
-			    if(editable) {
-					filegrid.tbar = [{
-		                text: 'Add',
-		                iconCls: 'icon-add fa fa-green',
-		                handler: function() {
-		                	var fgrid = this.up('grid');
-		                    var gridStore = fgrid.getStore();
-		                    var pos = gridStore.getCount();
-		                    if(pos == 1 && !fgrid.pcui.multiple)
-		                    	return showError('Can only add 1 file here');
-	
-		                    var sm = fgrid.getSelectionModel();
-		                    var role = eval("new "+fgrid.proprole+"();");
-		                    editorPlugin.cancelEdit();
-		                    gridStore.insert(pos, role);
-		                    editorPlugin.startEditByPosition({
-		                    	row:pos,
-		                    	column:1
-		                    });
-		                }
-		            }, {
-		                iconCls: 'icon-del fa fa-red',
-		                text: 'Delete',
-		                roletype: i,
-		                handler: function() {
-		                	var fgrid = this.up('grid');
-		                    var gridStore = fgrid.getStore();
-		                    editorPlugin.cancelEdit();
-		                    var s = fgrid.getSelectionModel().getSelection();
-		                    for (var i = 0, r; r = s[i]; i++) {
-		                        gridStore.remove(r);
-		                    }
-		                }
-		            }];
-			    }
-				if(prop.label == "Code" && editable) {
-					filegrid.tbar.push({xtype: 'tbfill'}, '-');
-					if(auditResults) {
-						var lines = auditResults.split("\n");
-						var resStore = {};
-						var headers = [];
-						for(var x=0; x<lines.length; x++) {
-							var cols = lines[x].split(",");
-							for(var y=0; y<cols.length; y++) {
-								if(x==0)
-									headers[y] = cols[y];
-								else 
-									resStore[headers[y]] = cols[y];
-							}
-						}
-						
-						filegrid.tbar.push({
-							iconCls: 'icon-runAlt fa fa-browngrey',
-							text: 'Get Audit Results',
-							handler: function() {
-			                	Ext.create('Ext.window.Window', {
-			                		title: 'DRAT results',
-			                		layout : 'border',
-		                            constrain : true,
-		                            maximizable : true,
-		                            frame : false,
-		                            border : false,
-		                            autoScroll : true,
-		                            width : 250,
-		                            height : 250,
-		                            items: {
-		                                xtype: 'propertygrid',
-		                                region: 'center',
-		                                source: resStore,
-		                                listeners: {
-		                                    'beforeedit': {
-		                                        fn: function () {
-		                                            return false;
-		                                        }
-		                                    }
-		                                }
-			                		}
-			                	}).show();
-							}
-						})
-					}
-					else {
-						filegrid.tbar.push({
-							iconCls: 'icon-runAlt fa fa-browngrey',
-							text: 'Run Audit Tool (DRAT)',
-							handler: function() {
-								Ext.get(maintab.getId()).mask("Submitting Audit job..");
-								Ext.Ajax.request({
-									url: This.op_url+'/runAuditTool',
-									params: {
-										softwareid: id
-									},
-									success: function(response) {
-										Ext.get(maintab.getId()).unmask();
-										if (response.responseText == "OK") {
-											showInfo('Audit job submitted.');
-										} else {
-											showError('Cannot run DRAT right now.' 
-													+ 'Try later');
-											_console(response.responseText);
-										}
-									},
-									failure: function(response) {
-										Ext.get(maintab.getId()).unmask();
-										_console(response.responseText);
-									}
-								});
-							}
-						});
-					}
-				}
-				
-				comp.items.push(filegrid);
+				comp.items.push(This.getFileGridEditor(prop, value, provenance, editable));
 			}
 			else {
-				var item = {
-					name: prop.id,
-					fieldLabel: prop.label ? prop.label : getLocalName(prop.id),
-					value: propValues[prop.id],
-					flex: 1,
-					anchor: '100%',
-					disabled: !editable,
-					provenance: provenance,
-					fieldStyle: this.getProvenanceStyle(provenance, editable),
-					listeners: {
-						change: function (item, newv, oldv, opts) {
-							item.provenance = {};
-							item.provenance[This.ns[''] + "editedBy"] = USER_ID;
-							item.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
-							item.setFieldStyle(This.getProvenanceStyle(item.provenance, editable));
-							
-							var infolabel = item.nextSibling('label');
-							infolabel.setText(
-									This.getProvenanceHtml(item.provenance, editable), 
-									false);
-						}
-					}
-				};
-				var align = '';
-				if(prop.isObjectProperty) {
-					if(prop.id == This.ns[''] + 'requiresSoftware') {
-						Ext.apply(item, This.getSoftwareComboBox());
-					}
-					else {
-						var store = new Ext.data.Store({
-							fields: ['value'],
-							sorters: ['value'],
-							data: Ext.Array.map (prop.possibleValues, function (x) {
-								return {id: x, value: getLocalName(x)};
-							}, this)
-						});
-						item.xtype = 'combo';
-						item.store = store;
-						item.multiSelect = true;
-						item.displayField = 'value';
-						item.valueField = 'id';
-						item.forceSelection = true;
-					}
-				}
-				else if(prop.range == this.ns['xsd'] + "int") {
-					item.xtype = 'numberfield';
-					item.allowDecimals = false;
-				}
-				else if(prop.range == this.ns['xsd'] + "integer") {
-					item.xtype = 'numberfield';
-					item.allowDecimals = false;
-				}
-				else if(prop.range == this.ns['xsd'] + "float") {
-					item.xtype = 'numberfield';
-					item.allowDecimals = true;
-				}
-				else if(prop.range == this.ns['xsd'] + "boolean") {
-					item.xtype = 'checkbox';
-					item.checked = Boolean(item.value);
-				}
-				else if(prop.range == this.ns['xsd'] + "date")
-					item.xtype = 'datefield';
-				else if(prop.label && prop.label.match(/descri|comment/i)) {
-					item.xtype = 'textareafield';
-					align = 'stretch';
-					item.flex = 1;
-					item.rows = 8;
-				}
-				else 
-					item.xtype = 'textfield';
-				
-				var info = this.getProvenanceHtml(provenance, editable);
-				var infoitem = {
-					xtype : 'label',
-					cls : 'info',
-					html : info,
-					width: 150,
-					style: 'padding-left:10px; font-size: 10px; font-style:italic'
-				};
-				
-				comp.items.push({
-					xtype: 'panel',
-					//layout: 'hbox',
-					layout: {
-						type: 'hbox',
-						align: align
-					},
-					padding: 3,
-					border: false,
-					bodyStyle: 'background:transparent',
-					items: [item, infoitem]
-				});
+				comp.items.push(This.getDefaultFieldEditor(prop, value, provenance, editable));
 			}
 		}
 	}
 	return editorPanel;
+};
+
+SoftwareViewer.prototype.getDefaultFieldEditor = function(prop, value, provenance, editable, vlabel) {
+	var This = this;
+	var item = {
+		name: prop.id,
+		fieldLabel: prop.label ? prop.label : getLocalName(prop.id),
+		labelAlign: vlabel ? 'top' : 'left',
+		labelStyle: vlabel ? 'padding-bottom:5px; font-weight:bold' : '',
+		value: value,
+		flex: 1,
+		anchor: '100%',
+		disabled: !editable,
+		provenance: provenance,
+		fieldStyle: this.getProvenanceStyle(provenance, editable),
+		listeners: {
+			change: function (item, newv, oldv, opts) {
+				item.provenance = {};
+				item.provenance[This.ns[''] + "editedBy"] = USER_ID;
+				item.provenance[This.ns[''] + "timestamp"] = (new Date()).getTime();
+				item.setFieldStyle(This.getProvenanceStyle(item.provenance, editable));
+				
+				var infolabel = item.nextSibling('label');
+				infolabel.setText(
+						This.getProvenanceHtml(item.provenance, editable), 
+						false);
+			}
+		}
+	};
+	var align = '';
+	if(prop.isObjectProperty) {
+		if(prop.id == This.ns[''] + 'requiresSoftware') {
+			Ext.apply(item, This.getSoftwareComboBox());
+		}
+		else {
+			var store = new Ext.data.Store({
+				fields: ['value'],
+				sorters: ['value'],
+				data: Ext.Array.map (prop.possibleValues, function (x) {
+					return {id: x, value: getLocalName(x)};
+				}, this)
+			});
+			item.xtype = 'combo';
+			item.store = store;
+			item.multiSelect = true;
+			item.displayField = 'value';
+			item.valueField = 'id';
+			item.forceSelection = true;
+		}
+	}
+	else if(prop.range == this.ns['xsd'] + "int") {
+		item.xtype = 'numberfield';
+		item.allowDecimals = false;
+	}
+	else if(prop.range == this.ns['xsd'] + "integer") {
+		item.xtype = 'numberfield';
+		item.allowDecimals = false;
+	}
+	else if(prop.range == this.ns['xsd'] + "float") {
+		item.xtype = 'numberfield';
+		item.allowDecimals = true;
+	}
+	else if(prop.range == this.ns['xsd'] + "boolean") {
+		item.xtype = 'checkbox';
+		item.checked = Boolean(item.value);
+	}
+	else if(prop.range == this.ns['xsd'] + "date")
+		item.xtype = 'datefield';
+	else if(prop.label && prop.label.match(/descri|comment/i)) {
+		item.xtype = 'textareafield';
+		align = 'stretch';
+		item.flex = 1;
+		item.rows = 8;
+	}
+	else 
+		item.xtype = 'textfield';
+	
+	var info = this.getProvenanceHtml(provenance, editable);
+	var infoitem = {
+		xtype : 'label',
+		cls : 'info',
+		html : info,
+		width: 150,
+		style: 'padding-left:10px; font-size: 10px; font-style:italic'
+	};
+	
+	return {
+		xtype: 'panel',
+		//layout: 'hbox',
+		layout: {
+			type: 'hbox',
+			align: align
+		},
+		padding: 3,
+		border: false,
+		bodyStyle: 'background:transparent',
+		items: [item, infoitem]
+	};
+};
+
+SoftwareViewer.prototype.getFileGridEditor = function(prop, value, provenance, editable) {
+	var This = this;
+    var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
+        clicksToEdit: 1,
+        listeners: {
+        	edit: function(editor, e, opts) {
+        		// Set provenance if value changed
+        		if(e.value != e.originalValue) {
+        			var prov = {};
+        			prov[This.ns[''] + "editedBy"] = USER_ID;
+					prov[This.ns[''] + "timestamp"] = (new Date()).getTime();
+					e.record.set('provenance', prov);
+        		}
+        	}
+        }
+    });
+	// Create a grid
+	var filegrid = {
+		xtype: 'grid',
+		type: 'filegrid',
+		propid: prop.id,
+		title: prop.label,
+		range: prop.range,
+        columns: [{
+            dataIndex: 'hasFileLocation',
+            header: 'File Location',
+            menuDisabled: true,
+            flex: 1,
+            editor: editable,
+			// TODO: Editor should be the uploader ?
+            /*editor: new Ext.form.field.Trigger({
+                onTriggerClick: function() {
+					// Open up upload window
+                }
+            })*/
+        }],
+        plugins: [editorPlugin],
+        selModel: Ext.create('Ext.selection.CheckboxModel'),
+        selType: 'cellmodel',
+        bodyCls: "multi-line-grid",
+        columnLines: true,
+        autoHeight: true
+	};
+	
+	var fields = ['hasFileLocation'];
+	
+	// Columns of the grid (all with simple text editors for now): 
+	// - file location (populated with value.hasFileLocation)
+	// - for each prop in extra
+	//   - extraprop.label (populated with value.[extraProp]
+	if(pcui.extra) {
+		for(var j=0; j<pcui.extra.length; j++) {
+			var extraprop = This.properties[this.ns[''] + pcui.extra[j]];
+			var extrapcom = This.propcomments[extraprop.id];
+			filegrid.columns.push({
+				dataIndex: getLocalName(extraprop.id),
+				header: extraprop.label ? 
+						extraprop.label : getLocalName(extraprop.id),
+				menuDisabled: true,
+				//flex: 1,
+				editor: true
+			});
+			fields.push(getLocalName(extraprop.id));
+		}
+	}
+	fields.push('provenance');
+	filegrid.columns.push({
+    	dataIndex: 'provenance',
+    	header: 'Provenance',
+    	flex: 1,
+    	editable: editable,
+    	renderer: function (v) {
+    		return This.getProvenanceCreationHtml(v, editable);
+    	}
+    });
+	
+	var proprole = 'FileRole'+getLocalName(prop.id);
+    if (!Ext.ModelManager.isRegistered(proprole))
+        Ext.define(proprole, {
+	        extend: 'Ext.data.Model',
+	        fields: fields
+        });
+
+    filegrid.store = {
+    	xtype: 'store',
+        model: proprole,
+        data: value,
+        listeners: {
+        	update: function() {
+				maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
+        		savebtn.setDisabled(false);
+        	}, 
+        	remove: function(store,records) {
+				maintab.setTitle("*" + maintab.title.replace(/^\*/, ''));
+        		savebtn.setDisabled(false);
+        	}
+        }
+    };
+    filegrid.pcui = pcui;
+    filegrid.proprole = proprole;
+    
+	// Create a grid toolbar and have an "Add"/"Delete" button
+    if(editable) {
+		filegrid.tbar = [{
+            text: 'Add',
+            iconCls: 'icon-add fa fa-green',
+            handler: function() {
+            	var fgrid = this.up('grid');
+                var gridStore = fgrid.getStore();
+                var pos = gridStore.getCount();
+                if(pos == 1 && !fgrid.pcui.multiple)
+                	return showError('Can only add 1 file here');
+
+                var sm = fgrid.getSelectionModel();
+                var role = eval("new "+fgrid.proprole+"();");
+                editorPlugin.cancelEdit();
+                gridStore.insert(pos, role);
+                editorPlugin.startEditByPosition({
+                	row:pos,
+                	column:1
+                });
+            }
+        }, {
+            iconCls: 'icon-del fa fa-red',
+            text: 'Delete',
+            roletype: i,
+            handler: function() {
+            	var fgrid = this.up('grid');
+                var gridStore = fgrid.getStore();
+                editorPlugin.cancelEdit();
+                var s = fgrid.getSelectionModel().getSelection();
+                for (var i = 0, r; r = s[i]; i++) {
+                    gridStore.remove(r);
+                }
+            }
+        }];
+    }
+	if(prop.label == "Code" && editable) {
+		filegrid.tbar.push({xtype: 'tbfill'}, '-');
+		if(auditResults) {
+			var lines = auditResults.split("\n");
+			var resStore = {};
+			var headers = [];
+			for(var x=0; x<lines.length; x++) {
+				var cols = lines[x].split(",");
+				for(var y=0; y<cols.length; y++) {
+					if(x==0)
+						headers[y] = cols[y];
+					else 
+						resStore[headers[y]] = cols[y];
+				}
+			}
+			
+			filegrid.tbar.push({
+				iconCls: 'icon-runAlt fa fa-browngrey',
+				text: 'Get Audit Results',
+				handler: function() {
+                	Ext.create('Ext.window.Window', {
+                		title: 'DRAT results',
+                		layout : 'border',
+                        constrain : true,
+                        maximizable : true,
+                        frame : false,
+                        border : false,
+                        autoScroll : true,
+                        width : 250,
+                        height : 250,
+                        items: {
+                            xtype: 'propertygrid',
+                            region: 'center',
+                            source: resStore,
+                            listeners: {
+                                'beforeedit': {
+                                    fn: function () {
+                                        return false;
+                                    }
+                                }
+                            }
+                		}
+                	}).show();
+				}
+			})
+		}
+		else {
+			filegrid.tbar.push({
+				iconCls: 'icon-runAlt fa fa-browngrey',
+				text: 'Run Audit Tool (DRAT)',
+				handler: function() {
+					Ext.get(maintab.getId()).mask("Submitting Audit job..");
+					Ext.Ajax.request({
+						url: This.op_url+'/runAuditTool',
+						params: {
+							softwareid: id
+						},
+						success: function(response) {
+							Ext.get(maintab.getId()).unmask();
+							if (response.responseText == "OK") {
+								showInfo('Audit job submitted.');
+							} else {
+								showError('Cannot run DRAT right now.' 
+										+ 'Try later');
+								_console(response.responseText);
+							}
+						},
+						failure: function(response) {
+							Ext.get(maintab.getId()).unmask();
+							_console(response.responseText);
+						}
+					});
+				}
+			});
+		}
+	}
+	return filegrid;
 };
 
 SoftwareViewer.prototype.getProvenanceHtml = function(provenance, editable) {
@@ -1929,7 +2055,19 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
 			} ]
 		}
     });
+    
+    var igrid = this.getIOGrid(iostore.inputs, 'input', data_types, tab, savebtn, editable);
+    var ogrid = this.getIOGrid(iostore.outputs, 'output', data_types, tab, savebtn, editable);
+    
+    mainPanel.items.push(igrid);
+    mainPanel.items.push(ogrid);
 
+    return mainPanel;
+};
+
+SoftwareViewer.prototype.getIOGrid = function(iodata, gridType, data_types, tab, savebtn, editable) {
+	var This = this;
+	
     // Register store models
     if (!Ext.ModelManager.isRegistered('DataRole'))
         Ext.define('DataRole', {
@@ -1941,173 +2079,152 @@ SoftwareViewer.prototype.getIOListEditor = function(c, iostore, data_types,
 	        extend: 'Ext.data.Model',
 	        fields: ['id', 'type']
         });
-
-    // Create stores for Inputs, Params and Outputs
-    var ipStore = new Ext.data.Store({
+    
+    var gridStore = new Ext.data.Store({
         model: 'DataRole',
-        data: iostore.inputs
+        data: iodata
     });
-    var opStore = new Ext.data.Store({
-        model: 'DataRole',
-        data: iostore.outputs
+    
+    var typeEditor = new Ext.form.ComboBox({
+        store: {
+            model: 'dataPropRangeTypes',
+            data: Ext.Array.map(data_types, function(typeid) {
+                return {
+                    id: typeid,
+                    type: getPrefixedUrl(typeid, This.ns)
+                };
+            }),
+            sorters: ['type']
+        },
+        displayField: 'type',
+        valueField: 'id',
+        queryMode: 'local',
+        typeAhead: true,
+        forceSelection: true,
+        allowBlank: false
+    });
+    var txtEditor = new Ext.form.field.Text({
+        allowBlank: false
     });
 
-    var iDataGrid, oDataGrid;
+    var columns = [{
+        dataIndex: 'role',
+        header: 'Identifier',
+        flex: 0.3,
+        editor: txtEditor,
+        menuDisabled: true
+    }, {
+        dataIndex: 'type',
+        header: 'Type',
+        flex: 0.2,
+        renderer: function(url) {
+            return getPrefixedUrl(url, This.ns);
+        },
+        editor: typeEditor,
+        menuDisabled: true
+    }, {
+    	dataIndex: 'provenance',
+    	header: 'Provenance',
+    	flex: 0.6,
+    	editable: false,
+    	renderer: function (v) {
+    		return This.getProvenanceCreationHtml(v, editable);
+    	}
+    }];
 
-    // Create editors
-    for (var i = 0; i < 2; i++) {
-        var typeEditor = new Ext.form.ComboBox({
-            store: {
-                model: 'dataPropRangeTypes',
-                data: Ext.Array.map(data_types, function(typeid) {
-                    return {
-                        id: typeid,
-                        type: getPrefixedUrl(typeid, This.ns)
-                    };
-                }),
-                sorters: ['type']
-            },
-            displayField: 'type',
-            valueField: 'id',
-            queryMode: 'local',
-            typeAhead: true,
-            forceSelection: true,
-            allowBlank: false
-        });
-        var txtEditor = new Ext.form.field.Text({
-            allowBlank: false
-        });
+    var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
+        checkOnly: true,
+        }) : Ext.create('Ext.selection.RowModel');
 
-        var columns = [{
-            dataIndex: 'role',
-            header: 'Identifier',
-            flex: 1,
-            editor: txtEditor,
-            menuDisabled: true
-        }, {
-            dataIndex: 'type',
-            header: 'Type',
-            flex: 1,
-            renderer: function(url) {
-                return getPrefixedUrl(url, This.ns);
-            },
-            editor: typeEditor,
-            menuDisabled: true
-        }, {
-        	dataIndex: 'provenance',
-        	header: 'Provenance',
-        	flex: 1,
-        	editable: false,
-        	renderer: function (v) {
-        		return This.getProvenanceCreationHtml(v, editable);
+    var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
+        clicksToEdit: 1,
+        listeners: {
+        	edit: function(editor, e, opts) {
+        		// Set provenance if value changed
+        		if(e.value != e.originalValue) {
+        			var prov = {};
+        			prov[This.ns[''] + "editedBy"] = USER_ID;
+					prov[This.ns[''] + "timestamp"] = (new Date()).getTime();
+					e.record.set('provenance', prov);
+        		}
         	}
-        }];
-
-        var sm = editable ? Ext.create('Ext.selection.CheckboxModel', {
-            checkOnly: true,
-            }) : Ext.create('Ext.selection.RowModel');
-
-        var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
-            clicksToEdit: 1,
-            listeners: {
-            	edit: function(editor, e, opts) {
-            		// Set provenance if value changed
-            		if(e.value != e.originalValue) {
-            			var prov = {};
-            			prov[This.ns[''] + "editedBy"] = USER_ID;
-    					prov[This.ns[''] + "timestamp"] = (new Date()).getTime();
-    					e.record.set('provenance', prov);
-            		}
-            	}
-            }
-        });
-
-        var plugins = editable ? [editorPlugin] : [];
-        var bodycls = editable ? '': 'inactive-grid';
-
-        var gridStore = (i == 0 ? ipStore: opStore);
-        var tbar = null;
-        if (editable) {
-            tbar = [{
-                text: 'Add',
-                iconCls: 'icon-add fa fa-green',
-                roletype: i,
-                handler: function() {
-                    var i = this.roletype;
-                    var panel = (i == 0 ? iDataGrid: oDataGrid);
-                    var gridStore = panel.getStore();
-                    var pos = gridStore.getCount();
-                    var sm = panel.getSelectionModel();
-                    var role = new DataRole();
-                    panel.editorPlugin.cancelEdit();
-                    gridStore.insert(pos, role);
-                    panel.editorPlugin.startEditByPosition({
-                    	row:pos,
-                    	column:1
-                    });
-                }
-            }, {
-                iconCls: 'icon-del fa fa-red',
-                text: 'Delete',
-                roletype: i,
-                handler: function() {
-                    var i = this.roletype;
-                    var panel = (i == 0 ? iDataGrid: oDataGrid);
-                    var gridStore = panel.getStore();
-                    panel.editorPlugin.cancelEdit();
-                    var s = panel.getSelectionModel().getSelection();
-                    for (var i = 0, r; r = s[i]; i++) {
-                        gridStore.remove(r);
-                    }
-                    // mainPanel.doLayout();
-                }
-            }];
         }
+    });
 
-        var gridPanel = new Ext.grid.GridPanel({
-            columnLines: true,
-            autoHeight: true,
-            border: false,
-            // forceFit: true,
-            title: (i == 0 ? 'Inputs': 'Outputs'),
-            iconCls: (i == 0 ? 'icon-input fa-title fa-blue': 
-            	'icon-output fa-title fa-brown'),
-            type: !i ? 'input' : 'output',
-            columns: columns,
-            selModel: sm,
-            selType: 'cellmodel',
-            plugins: plugins,
-            bodyCls: bodycls,
-            store: gridStore,
-            tbar: tbar
-        });
-        gridPanel.editorPlugin = editorPlugin;
+    var plugins = editable ? [editorPlugin] : [];
+    var bodycls = editable ? '': 'inactive-grid';
 
-        if (i == 0)
-            iDataGrid = gridPanel;
-        if (i == 1)
-            oDataGrid = gridPanel;
-        
-        gridStore.on('add', function() {
-            tab.setTitle("*" + tab.title.replace(/^\*/, ''));
-            savebtn.setDisabled(false);
-        });
-        gridStore.on('remove', function() {
-            tab.setTitle("*" + tab.title.replace(/^\*/, ''));
-            savebtn.setDisabled(false);
-        });
-        gridStore.on('update', function() {
-            tab.setTitle("*" + tab.title.replace(/^\*/, ''));
-            savebtn.setDisabled(false);
-        });
+    var tbar = null;
+    if (editable) {
+        tbar = [{
+            text: 'Add',
+            iconCls: 'icon-add fa fa-green',
+            roletype: gridType == 'input' ? 0 : 1,
+            handler: function() {
+                var i = this.roletype;
+                var panel = this.up('gridpanel');
+                var gridStore = panel.getStore();
+                var pos = gridStore.getCount();
+                var sm = panel.getSelectionModel();
+                var role = new DataRole();
+                panel.editorPlugin.cancelEdit();
+                gridStore.insert(pos, role);
+                panel.editorPlugin.startEditByPosition({
+                	row:pos,
+                	column:1
+                });
+            }
+        }, {
+            iconCls: 'icon-del fa fa-red',
+            text: 'Delete',
+            roletype: gridType == 'input' ? 0 : 1,
+            handler: function() {
+                var i = this.roletype;
+                var panel = this.up('gridpanel');
+                var gridStore = panel.getStore();
+                panel.editorPlugin.cancelEdit();
+                var s = panel.getSelectionModel().getSelection();
+                for (var i = 0, r; r = s[i]; i++) {
+                    gridStore.remove(r);
+                }
+                // mainPanel.doLayout();
+            }
+        }];
     }
 
-    mainPanel.items.push(iDataGrid);
-    mainPanel.items.push(oDataGrid);
-
-    return mainPanel;
+    var gridPanel = new Ext.grid.GridPanel({
+        columnLines: true,
+        autoHeight: true,
+        border: false,
+        // forceFit: true,
+        title: (gridType == 'input' ? 'Inputs': 'Outputs'),
+        iconCls: (gridType == 'input' ? 'icon-input fa-title fa-blue': 
+        	'icon-output fa-title fa-brown'),
+        type: gridType,
+        columns: columns,
+        selModel: sm,
+        selType: 'cellmodel',
+        plugins: plugins,
+        bodyCls: bodycls,
+        store: gridStore,
+        tbar: tbar
+    });
+    gridPanel.editorPlugin = editorPlugin;
+    
+    gridStore.on('add', function() {
+        tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+        savebtn.setDisabled(false);
+    });
+    gridStore.on('remove', function() {
+        tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+        savebtn.setDisabled(false);
+    });
+    gridStore.on('update', function() {
+        tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+        savebtn.setDisabled(false);
+    });
+    return gridPanel;
 };
-
 
 SoftwareViewer.prototype.getAssumptionsEditor = function(c, store, sninfo, 
 		mainPanel, tab, savebtn, editable) {
