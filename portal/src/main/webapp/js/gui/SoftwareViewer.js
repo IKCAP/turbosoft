@@ -661,10 +661,10 @@ SoftwareViewer.prototype.openSoftwareEditor = function(args) {
     	});
     }
 	
-    tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
-    		This.editable);
-//    tab.softwareEditor = This.getDemoSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
+//    tab.softwareEditor = This.getSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
 //    		This.editable);
+    tab.softwareEditor = This.getDemoSoftwareEditor(id, compStore, This.store.properties, tab, savebtn, 
+    		This.editable);
     
     var mainPanelItems = [ tab.softwareEditor ];
     
@@ -1379,7 +1379,9 @@ SoftwareViewer.prototype.getDemoSoftwareEditor = function (id, store, props, mai
 	
 	var dpropid = "http://www.isi.edu/ikcap/geosoft/ontology/software.owl#Description";
 	var dprop = propById[dpropid];
-	var desced = This.getDefaultFieldEditor(dprop, propValues[dpropid], propProv[dpropid], editable, true)
+	var pcui = This.propcomments[dpropid];
+	var desced = 
+		This.getDefaultFieldEditor(dprop, propValues[dpropid], propProv[dpropid], pcui, editable, true)
 
 	var editorPanel = {
 		xtype: 'form',
@@ -1640,17 +1642,18 @@ SoftwareViewer.prototype.getSoftwareEditor = function (id, store, props, maintab
 			var value = propValues[prop.id];
 			var provenance = propProv[prop.id];
 			if(pcui && pcui.isfile) {
-				comp.items.push(This.getFileGridEditor(prop, value, provenance, editable));
+				comp.items.push(This.getFileGridEditor(prop, value, provenance, pcui, editable, i, auditResults));
 			}
 			else {
-				comp.items.push(This.getDefaultFieldEditor(prop, value, provenance, editable));
+				comp.items.push(This.getDefaultFieldEditor(prop, value, provenance, pcui, editable));
 			}
 		}
 	}
 	return editorPanel;
 };
 
-SoftwareViewer.prototype.getDefaultFieldEditor = function(prop, value, provenance, editable, vlabel) {
+SoftwareViewer.prototype.getDefaultFieldEditor = 
+	function(prop, value, provenance, pcui, editable, vlabel) {
 	var This = this;
 	var item = {
 		name: prop.id,
@@ -1748,7 +1751,8 @@ SoftwareViewer.prototype.getDefaultFieldEditor = function(prop, value, provenanc
 	};
 };
 
-SoftwareViewer.prototype.getFileGridEditor = function(prop, value, provenance, editable) {
+SoftwareViewer.prototype.getFileGridEditor = 
+	function(prop, value, provenance, pcui, editable, i, auditResults) {
 	var This = this;
     var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
         clicksToEdit: 1,
